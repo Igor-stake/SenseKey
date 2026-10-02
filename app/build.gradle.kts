@@ -27,7 +27,10 @@ android {
     signingConfigs {
         create("release") {
             val props = Properties()
-            rootProject.file("local.properties").inputStream().use { props.load(it) }
+            val localProperties = rootProject.file("local.properties")
+            if (localProperties.exists()) {
+                localProperties.inputStream().use { props.load(it) }
+            }
             storeFile = file(props.getProperty("RELEASE_STORE_FILE", "../deskdrop-release.keystore"))
             storePassword = props.getProperty("RELEASE_STORE_PASSWORD", "")
             keyAlias = props.getProperty("RELEASE_KEY_ALIAS", "deskdrop")
@@ -67,7 +70,7 @@ android {
             applicationIdSuffix = ".debug"
             signingConfig = signingConfigs.getByName("debug")
         }
-        base.archivesBaseName = "Deskdrop_" + defaultConfig.versionName
+        base.archivesBaseName = "SenseKey_" + defaultConfig.versionName
         // got a little too big for GitHub after some dependency upgrades, so we remove the largest dictionary
         androidComponents.onVariants { variant: ApplicationVariant ->
             if (variant.buildType == "debug") {
@@ -81,7 +84,7 @@ android {
         applicationVariants.all {
             outputs.all {
                 (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                    "Deskdrop_" + defaultConfig.versionName + ".apk"
+                    "SenseKey_" + defaultConfig.versionName + ".apk"
             }
         }
     }
