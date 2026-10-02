@@ -29,14 +29,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
 
       # A fresh runner otherwise generates a different signing key on every build.
-      # Preserve this development key so later APKs can update the installed app.
+      # Current runner tools create it under ~/.config/.android, not ~/.android.
+      # Preserve both locations so later APKs can update the installed app.
       # This is a pre-alpha convenience: cache eviction still requires a reinstall.
       # A persistent development signing key is needed for durable distribution.
       - name: Cache development signing key
         uses: actions/cache@v4
         with:
-          path: ~/.android/debug.keystore
-          key: sensekey-debug-keystore-v1
+          path: |
+            ~/.android/debug.keystore
+            ~/.config/.android/debug.keystore
+          key: sensekey-debug-keystore-v2
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
