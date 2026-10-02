@@ -19,7 +19,9 @@ android {
         versionName = "1.3.1"
         ndk {
             abiFilters.clear()
-            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64"))
+            // Pre-alpha target: modern Android phones, including Galaxy Z Fold 8.
+            // Keeping arm64 only makes CI packaging much lighter and faster.
+            abiFilters.add("arm64-v8a")
         }
         proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
