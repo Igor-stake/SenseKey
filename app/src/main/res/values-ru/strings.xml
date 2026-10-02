@@ -491,6 +491,10 @@
     <string name="gesture_data_share_limit">Чтобы не превысить лимит размера, будут экспортированы только первые %s слов(а)</string>
     <string name="sense_context_accessibility_description">Чтение видимого текста экрана на устройстве для проверки подсказок SenseKey.</string>
     <string name="sense_context_panel_title">Контекст экрана</string>
+    <string name="sense_context_history_title">История: %1$d/%2$d</string>
+    <string name="sense_context_history_status">%1$s · Прокрути чат, чтобы добавить контекст</string>
+    <string name="sense_context_one_screen_status">Один экран. Диалог в этом интерфейсе пока не распознан.</string>
+    <string name="sense_context_reset">Сброс</string>
     <string name="sense_context_close">Закрыть</string>
     <string name="sense_context_disabled">Сервис SenseKey Context не подключён. Включи его в специальных возможностях Android.</string>
     <string name="sense_context_waiting">Жду свежий контекст этого приложения. Открой диалог или прокрути переписку.</string>

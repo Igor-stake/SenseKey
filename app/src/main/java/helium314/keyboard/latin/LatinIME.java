@@ -149,6 +149,8 @@ public class LatinIME extends InputMethodService implements
     private SuggestionStripView mSenseDiagnosticStripView;
     private android.widget.TextView mSenseContextText;
     private android.widget.TextView mSenseContextTitle;
+    private android.widget.TextView mSenseContextStatus;
+    private android.widget.TextView mSenseContextReset;
     private final Runnable mSenseRefreshRunnable = this::maybeShowSensePrototypeCompletion;
     private final Runnable mSenseContextPollRunnable = new Runnable() {
         @Override
@@ -2312,6 +2314,19 @@ public class LatinIME extends InputMethodService implements
         mSenseContextTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
         header.addView(mSenseContextTitle, new android.widget.LinearLayout.LayoutParams(
                 0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        mSenseContextReset = new android.widget.TextView(this);
+        mSenseContextReset.setText(R.string.sense_context_reset);
+        mSenseContextReset.setTextColor(color);
+        mSenseContextReset.setTextSize(14f);
+        mSenseContextReset.setPadding(padding / 2, 0, padding / 2, 0);
+        mSenseContextReset.setGravity(android.view.Gravity.CENTER);
+        mSenseContextReset.setMinHeight((int) (48f * getResources().getDisplayMetrics().density));
+        mSenseContextReset.setOnClickListener(view -> {
+            SenseContextCache.resetHistory();
+            final EditorInfo editor = getCurrentInputEditorInfo();
+            if (editor != null) updateSenseContextPanel(editor.packageName);
+        });
+        header.addView(mSenseContextReset);
         final android.widget.TextView close = new android.widget.TextView(this);
         close.setText(R.string.sense_context_close);
         close.setTextColor(color);
@@ -2322,6 +2337,14 @@ public class LatinIME extends InputMethodService implements
         close.setOnClickListener(view -> dismissSenseContextPanel());
         header.addView(close);
         panel.addView(header);
+
+        mSenseContextStatus = new android.widget.TextView(this);
+        mSenseContextStatus.setTextSize(12f);
+        mSenseContextStatus.setTextColor(color);
+        mSenseContextStatus.setMaxLines(2);
+        mSenseContextStatus.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        mSenseContextStatus.setPadding(padding, 0, padding, padding / 2);
+        panel.addView(mSenseContextStatus);
 
         final android.widget.ScrollView scroll = new android.widget.ScrollView(this);
         scroll.setFillViewport(true);
@@ -2361,8 +2384,14 @@ public class LatinIME extends InputMethodService implements
     private void updateSenseContextPanel(final String editorPackage) {
         final SenseContextCache.Snapshot snapshot = SenseContextCache.getSnapshot();
         final boolean recent = snapshot.isRecentFor(editorPackage, 15_000L);
-        final String title = getString(R.string.sense_context_panel_title)
-                + (recent ? " [" + snapshot.packageName + "]" : "");
+        final boolean history = recent && snapshot.historySupported;
+        final String title = history
+                ? getString(R.string.sense_context_history_title, snapshot.screenCount, 6)
+                : getString(R.string.sense_context_panel_title);
+        final String status = history ? getString(R.string.sense_context_history_status,
+                snapshot.conversationLabel)
+                : (recent && !snapshot.text.isEmpty()
+                        ? getString(R.string.sense_context_one_screen_status) : "");
         final String text;
         if (!snapshot.serviceConnected) {
             text = getString(R.string.sense_context_disabled);
@@ -2375,6 +2404,10 @@ public class LatinIME extends InputMethodService implements
         }
         // Reuse the panel and preserve scroll position when the capture has not changed.
         if (!title.contentEquals(mSenseContextTitle.getText())) mSenseContextTitle.setText(title);
+        if (!status.contentEquals(mSenseContextStatus.getText())) mSenseContextStatus.setText(status);
+        mSenseContextStatus.setVisibility(status.isEmpty()
+                ? android.view.View.GONE : android.view.View.VISIBLE);
+        mSenseContextReset.setVisibility(history ? android.view.View.VISIBLE : android.view.View.GONE);
         if (!text.contentEquals(mSenseContextText.getText())) mSenseContextText.setText(text);
     }
 
@@ -2418,6 +2451,8 @@ public class LatinIME extends InputMethodService implements
         mSenseOriginalStripHeight = null;
         mSenseContextText = null;
         mSenseContextTitle = null;
+        mSenseContextStatus = null;
+        mSenseContextReset = null;
         if (wasVisible && hasSuggestionStripView()) setNeutralSuggestionStrip();
     }
 

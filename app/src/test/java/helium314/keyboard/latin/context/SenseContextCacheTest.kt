@@ -66,4 +66,61 @@ class SenseContextCacheTest {
         assertFalse(SenseContextCache.getSnapshot().serviceConnected)
         assertEquals("", SenseContextCache.getSnapshot().text)
     }
+
+    private fun chat(text: String, label: String = "Test contact") =
+        SenseContextExtractor.Screen("Toolbar\n$text", label, text)
+
+    @Test fun snapshotExposesBothCurrentScreenAndAccumulatedMessages() {
+        val first = "Earlier message with enough text for overlap."
+        val second = "Later message with enough text for overlap."
+        SenseContextCache.update("com.whatsapp", 1, chat(first))
+        val original = SenseContextCache.getSnapshot()
+        SenseContextCache.update("com.whatsapp", 1, chat("$first\n$second"))
+        val current = SenseContextCache.getSnapshot()
+        assertEquals(first, original.text)
+        assertEquals("Toolbar\n$first\n$second", current.screenText)
+        assertEquals("$first\n$second", current.text)
+        assertEquals("Test contact", current.conversationLabel)
+        assertTrue(current.historySupported)
+    }
+
+    @Test fun keyboardGeometryInvalidationRequiresReverificationButKeepsHistory() {
+        SenseContextCache.update("com.whatsapp", 1, chat("Earlier message from this chat."))
+        SenseContextCache.invalidateWindow()
+        assertEquals("", SenseContextCache.getSnapshot().text)
+        SenseContextCache.update("com.whatsapp", 1, chat("Another message from this chat."))
+        assertEquals(2, SenseContextCache.getSnapshot().screenCount)
+    }
+
+    @Test fun navigationClearDropsHistoryEvenForIdenticalDisplayNames() {
+        SenseContextCache.update("com.whatsapp", 1, chat("First contact's private message."))
+        SenseContextCache.clear()
+        SenseContextCache.update("com.whatsapp", 1, chat("Second contact's different message."))
+        val current = SenseContextCache.getSnapshot()
+        assertEquals(1, current.screenCount)
+        assertFalse(current.text.contains("First contact"))
+    }
+
+    @Test fun resetKeepsOnlyCurrentScreenAndDoesNotRenewItsFreshness() {
+        SenseContextCache.update("com.whatsapp", 1, chat("Earlier message from this chat."))
+        SenseContextCache.update("com.whatsapp", 1, chat("Current message from this chat."))
+        val timestamp = SenseContextCache.getSnapshot().updatedAt
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(2))
+        SenseContextCache.resetHistory()
+        val current = SenseContextCache.getSnapshot()
+        assertEquals(1, current.screenCount)
+        assertEquals("Current message from this chat.", current.text)
+        assertEquals(timestamp, current.updatedAt)
+    }
+
+    @Test fun changedHeaderAndMissingHeaderDiscardHistory() {
+        SenseContextCache.update("com.whatsapp", 1, chat("First message", "Alice"))
+        SenseContextCache.update("com.whatsapp", 1, chat("Second message", "Bob"))
+        assertEquals("Second message", SenseContextCache.getSnapshot().text)
+        SenseContextCache.update("com.whatsapp", 1, "Unrecognized screen")
+        val current = SenseContextCache.getSnapshot()
+        assertEquals("Unrecognized screen", current.text)
+        assertFalse(current.historySupported)
+        assertEquals("", current.conversationLabel)
+    }
 }

@@ -48,9 +48,12 @@ public final class SenseContextAccessibilityService extends AccessibilityService
                 && getPackageName().contentEquals(event.getPackageName())) {
             return;
         }
-        if (event != null && (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                || event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED)) {
+        if (event != null && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            // A navigation/dialog boundary must not join contacts with the same display name.
             SenseContextCache.clear();
+        } else if (event != null && event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
+            // Keyboard geometry changed; the same conversation must be reverified.
+            SenseContextCache.invalidateWindow();
         }
         scheduleRefresh();
     }
@@ -91,7 +94,7 @@ public final class SenseContextAccessibilityService extends AccessibilityService
             final CharSequence packageNameCs = root.getPackageName();
             final String packageName = packageNameCs == null ? "" : packageNameCs.toString();
             final int windowId = root.getWindowId();
-            final String extracted = SenseContextExtractor.extract(root);
+            final SenseContextExtractor.Screen extracted = SenseContextExtractor.extractScreen(root);
             // Empty captures must replace the previous screen too.
             SenseContextCache.update(packageName, windowId, extracted);
         } catch (IllegalStateException | SecurityException e) {
