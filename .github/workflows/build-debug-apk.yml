@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - prealpha-hardcoded-completion
+      - prealpha-accessibility-context
 
 jobs:
   build:
