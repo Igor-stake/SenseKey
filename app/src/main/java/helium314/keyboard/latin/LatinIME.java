@@ -57,6 +57,7 @@ import helium314.keyboard.keyboard.MainKeyboardView;
 import helium314.keyboard.latin.SuggestedWords.SuggestedWordInfo;
 import helium314.keyboard.latin.common.ColorType;
 import helium314.keyboard.latin.common.Constants;
+import helium314.keyboard.latin.context.SenseContextCache;
 import helium314.keyboard.latin.common.CoordinateUtils;
 import helium314.keyboard.latin.common.InputPointers;
 import helium314.keyboard.latin.common.ViewOutlineProviderUtilsKt;
@@ -2237,8 +2238,15 @@ public class LatinIME extends InputMethodService implements
             return;
         }
 
+        final String screenContext = SenseContextCache.getRecentText(15_000L);
         final android.widget.TextView completion = new android.widget.TextView(this);
-        completion.setText("буду завтра в 11.   → свайп");
+        if (screenContext.isEmpty()) {
+            completion.setText("CTX: нет данных — включите SenseKey Context в специальных возможностях");
+        } else {
+            final String normalizedContext = screenContext.replace('\n', ' ').trim();
+            final int keep = Math.min(260, normalizedContext.length());
+            completion.setText("CTX: " + normalizedContext.substring(normalizedContext.length() - keep));
+        }
         completion.setSingleLine(true);
         completion.setEllipsize(android.text.TextUtils.TruncateAt.END);
         completion.setGravity(android.view.Gravity.CENTER_VERTICAL);
@@ -2258,9 +2266,6 @@ public class LatinIME extends InputMethodService implements
                     return true;
                 case android.view.MotionEvent.ACTION_UP:
                     if (motionEvent.getX() - downX[0] >= swipeThreshold) {
-                        // Go through InputLogic rather than committing directly, so the IME
-                        // keeps its internal composing/cursor state consistent.
-                        onTextInput(" буду завтра в 11.");
                         mSensePrototypeVisible = false;
                         setNeutralSuggestionStrip();
                     }
