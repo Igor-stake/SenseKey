@@ -13,6 +13,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 class XLinkTest { // Without the X, SubtypeTests fail with ClassCastException. WTF?
@@ -58,7 +59,10 @@ class XLinkTest { // Without the X, SubtypeTests fail with ClassCastException. W
         val internalLinkRegex = "app/src/\\b(?:[-a-zA-Z0-9@:%_\\+.~#?&\\/\\/=]*)".toRegex()
         val links = internalLinkRegex.findAll(file.readText())
         links.forEach {
-            checkLink(it.value.replace("app/src", Links.GITHUB + "/blob/main/app/src"))
+            // Relative links describe this checkout, including files in an unmerged PR.
+            // Checking remote main also makes a valid local reference fail on HTTP outages.
+            val target = it.value.substringBefore('#')
+            assertTrue(File("../$target").exists(), "Missing layout reference: $target")
         }
     }
 
