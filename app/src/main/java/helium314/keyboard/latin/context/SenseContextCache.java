@@ -9,25 +9,49 @@ package helium314.keyboard.latin.context;
  * This is deliberately minimal for the pre-alpha feasibility test.
  */
 public final class SenseContextCache {
-    private static volatile String sText = "";
-    private static volatile String sPackageName = "";
-    private static volatile long sUpdatedAt = 0L;
+    /** One immutable value prevents mixing text, package and age from different captures. */
+    public static final class Snapshot {
+        public final String packageName;
+        public final String text;
+        public final int windowId;
+        public final long updatedAt;
+        public final boolean serviceConnected;
+
+        private Snapshot(final String packageName, final String text, final int windowId,
+                final long updatedAt, final boolean serviceConnected) {
+            this.packageName = packageName;
+            this.text = text;
+            this.windowId = windowId;
+            this.updatedAt = updatedAt;
+            this.serviceConnected = serviceConnected;
+        }
+
+        public boolean isRecentFor(final String editorPackage, final long maxAgeMillis) {
+            final long age = android.os.SystemClock.elapsedRealtime() - updatedAt;
+            return serviceConnected && !packageName.isEmpty()
+                    && packageName.equals(editorPackage) && age >= 0 && age <= maxAgeMillis;
+        }
+    }
+
+    private static volatile Snapshot sSnapshot = new Snapshot("", "", -1, 0L, false);
 
     private SenseContextCache() {}
 
-    public static void update(final String packageName, final String text) {
-        sPackageName = packageName == null ? "" : packageName;
-        sText = text == null ? "" : text;
-        sUpdatedAt = android.os.SystemClock.elapsedRealtime();
+    public static void setServiceConnected(final boolean connected) {
+        sSnapshot = new Snapshot("", "", -1, 0L, connected);
     }
 
-    public static String getRecentText(final long maxAgeMillis) {
-        if (sText.isEmpty()) return "";
-        final long age = android.os.SystemClock.elapsedRealtime() - sUpdatedAt;
-        return age <= maxAgeMillis ? sText : "";
+    public static void update(final String packageName, final int windowId, final String text) {
+        sSnapshot = new Snapshot(packageName == null ? "" : packageName,
+                text == null ? "" : text, windowId,
+                android.os.SystemClock.elapsedRealtime(), sSnapshot.serviceConnected);
     }
 
-    public static String getPackageName() {
-        return sPackageName;
+    public static void clear() {
+        sSnapshot = new Snapshot("", "", -1, 0L, sSnapshot.serviceConnected);
+    }
+
+    public static Snapshot getSnapshot() {
+        return sSnapshot;
     }
 }

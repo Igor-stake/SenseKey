@@ -8,13 +8,11 @@ import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.TextUtils;
+import android.os.Build;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
 
-import java.util.ArrayDeque;
-import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -25,16 +23,16 @@ import java.util.List;
  * measure how much useful context Android apps expose through the accessibility tree.
  */
 public final class SenseContextAccessibilityService extends AccessibilityService {
-    private static final int MAX_NODES = 500;
-    private static final int MAX_CHARS = 5000;
     private static final long DEBOUNCE_MS = 120L;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Runnable mRefreshRunnable = this::refreshContext;
+    private boolean mRefreshScheduled;
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
+        SenseContextCache.setServiceConnected(true);
         final AccessibilityServiceInfo info = getServiceInfo();
         if (info != null) {
             info.flags |= AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS;
@@ -50,30 +48,55 @@ public final class SenseContextAccessibilityService extends AccessibilityService
                 && getPackageName().contentEquals(event.getPackageName())) {
             return;
         }
+        if (event != null && (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                || event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED)) {
+            SenseContextCache.clear();
+        }
         scheduleRefresh();
     }
 
     @Override
     public void onInterrupt() {
-        // Nothing to interrupt in this lightweight prototype.
+        cancelRefresh();
+        SenseContextCache.clear();
+    }
+
+    @Override
+    public void onDestroy() {
+        cancelRefresh();
+        SenseContextCache.setServiceConnected(false);
+        super.onDestroy();
+    }
+
+    private void cancelRefresh() {
+        mHandler.removeCallbacks(mRefreshRunnable);
+        mRefreshScheduled = false;
     }
 
     private void scheduleRefresh() {
-        mHandler.removeCallbacks(mRefreshRunnable);
+        // Coalesce an event burst without postponing forever during continuous scrolling.
+        if (mRefreshScheduled) return;
+        mRefreshScheduled = true;
         mHandler.postDelayed(mRefreshRunnable, DEBOUNCE_MS);
     }
 
     private void refreshContext() {
-        final AccessibilityNodeInfo root = findApplicationRoot();
-        if (root == null) return;
-
-        final CharSequence packageNameCs = root.getPackageName();
-        final String packageName = packageNameCs == null ? "" : packageNameCs.toString();
-        if (getPackageName().equals(packageName)) return;
-
-        final String extracted = extractVisibleText(root);
-        if (!TextUtils.isEmpty(extracted)) {
-            SenseContextCache.update(packageName, extracted);
+        mRefreshScheduled = false;
+        try {
+            final AccessibilityNodeInfo root = findApplicationRoot();
+            if (root == null) {
+                SenseContextCache.clear();
+                return;
+            }
+            final CharSequence packageNameCs = root.getPackageName();
+            final String packageName = packageNameCs == null ? "" : packageNameCs.toString();
+            final int windowId = root.getWindowId();
+            final String extracted = SenseContextExtractor.extract(root);
+            // Empty captures must replace the previous screen too.
+            SenseContextCache.update(packageName, windowId, extracted);
+        } catch (IllegalStateException | SecurityException e) {
+            // Windows may disappear between an event and this delayed capture.
+            SenseContextCache.clear();
         }
     }
 
@@ -81,64 +104,59 @@ public final class SenseContextAccessibilityService extends AccessibilityService
         try {
             final List<AccessibilityWindowInfo> windows = getWindows();
             if (windows != null) {
-                for (int i = windows.size() - 1; i >= 0; i--) {
-                    final AccessibilityWindowInfo window = windows.get(i);
-                    if (window == null || window.getType() != AccessibilityWindowInfo.TYPE_APPLICATION) {
-                        continue;
+                try {
+                    for (final AccessibilityWindowInfo window : windows) {
+                        if (window != null && window.getType() == AccessibilityWindowInfo.TYPE_APPLICATION) {
+                            // A null selection here means an app is present but cannot be read
+                            // (or is SenseKey itself). Do not fall back to a background window.
+                            return selectApplicationRoot(windows, getPackageName());
+                        }
                     }
-                    final AccessibilityNodeInfo root = window.getRoot();
-                    if (root == null) continue;
-                    final CharSequence pkg = root.getPackageName();
-                    if (pkg != null && !getPackageName().contentEquals(pkg)) {
-                        return root;
-                    }
+                } finally {
+                    recycleWindows(windows);
                 }
             }
-        } catch (Throwable ignored) {
+        } catch (IllegalStateException | SecurityException ignored) {
             // Fall back to rootInActiveWindow below.
         }
 
         final AccessibilityNodeInfo root = getRootInActiveWindow();
         if (root == null) return null;
         final CharSequence pkg = root.getPackageName();
-        if (pkg != null && getPackageName().contentEquals(pkg)) return null;
+        if (pkg == null || getPackageName().contentEquals(pkg)) {
+            SenseContextExtractor.recycle(root);
+            return null;
+        }
         return root;
     }
 
-    private String extractVisibleText(final AccessibilityNodeInfo root) {
-        final ArrayDeque<AccessibilityNodeInfo> queue = new ArrayDeque<>();
-        final HashSet<String> seen = new HashSet<>();
-        final StringBuilder out = new StringBuilder();
-        queue.add(root);
-
-        int visited = 0;
-        while (!queue.isEmpty() && visited < MAX_NODES && out.length() < MAX_CHARS) {
-            final AccessibilityNodeInfo node = queue.removeFirst();
-            visited++;
-
-            if (!node.isPassword() && !node.isEditable()) {
-                appendIfUseful(out, seen, node.getText());
-            }
-
-            final int childCount = node.getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                final AccessibilityNodeInfo child = node.getChild(i);
-                if (child != null) queue.addLast(child);
+    static AccessibilityNodeInfo selectApplicationRoot(final List<AccessibilityWindowInfo> windows,
+            final String ownPackage) {
+        // getWindows() is already ordered from the top layer down. Prefer input focus
+        // (important in split screen), then the active window, then the top application.
+        for (int priority = 0; priority < 3; priority++) {
+            for (final AccessibilityWindowInfo window : windows) {
+                if (window == null || window.getType() != AccessibilityWindowInfo.TYPE_APPLICATION
+                        || (priority == 0 && !window.isFocused())
+                        || (priority == 1 && !window.isActive())) continue;
+                final AccessibilityNodeInfo root = window.getRoot();
+                if (root == null) continue;
+                final CharSequence pkg = root.getPackageName();
+                if (pkg != null && !ownPackage.contentEquals(pkg)) return root;
+                SenseContextExtractor.recycle(root);
+                // Do not read a background application behind SenseKey settings/dialogs.
+                if (window.isFocused() || window.isActive()) return null;
             }
         }
-
-        return out.toString().trim();
+        return null;
     }
 
-    private void appendIfUseful(final StringBuilder out, final HashSet<String> seen,
-            final CharSequence value) {
-        if (value == null) return;
-        final String normalized = value.toString().replaceAll("\\s+", " ").trim();
-        if (normalized.length() < 2 || !seen.add(normalized)) return;
-
-        if (out.length() > 0) out.append(" | ");
-        final int remaining = MAX_CHARS - out.length();
-        if (remaining <= 0) return;
-        out.append(normalized, 0, Math.min(normalized.length(), remaining));
+    @SuppressWarnings("deprecation")
+    private static void recycleWindows(final List<AccessibilityWindowInfo> windows) {
+        if (Build.VERSION.SDK_INT < 33) {
+            for (final AccessibilityWindowInfo window : windows) {
+                if (window != null) window.recycle();
+            }
+        }
     }
 }

@@ -60,6 +60,8 @@ android {
             isMinifyEnabled = true
             isJniDebuggable = false
             applicationIdSuffix = ".debug"
+            val buildNumber = providers.environmentVariable("GITHUB_RUN_NUMBER").orNull
+            versionNameSuffix = "-sensekey." + (buildNumber ?: "local")
         }
         create("runTests") { // build variant for running tests on CI that skips tests known to fail
             isMinifyEnabled = false
@@ -72,7 +74,7 @@ android {
             applicationIdSuffix = ".debug"
             signingConfig = signingConfigs.getByName("debug")
         }
-        base.archivesBaseName = "SenseKey_" + defaultConfig.versionName
+        base.archivesBaseName = "SenseKey-" + defaultConfig.versionName
         // got a little too big for GitHub after some dependency upgrades, so we remove the largest dictionary
         androidComponents.onVariants { variant: ApplicationVariant ->
             if (variant.buildType == "debug") {
@@ -86,7 +88,7 @@ android {
         applicationVariants.all {
             outputs.all {
                 (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                    "SenseKey_" + defaultConfig.versionName + ".apk"
+                    "SenseKey-" + versionName + ".apk"
             }
         }
     }

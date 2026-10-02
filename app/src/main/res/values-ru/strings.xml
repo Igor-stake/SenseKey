@@ -489,4 +489,10 @@
     <string name="toolbar_swipe_down_to_hide">Скрывать клавиатуру жестом смахивания</string>
     <string name="gesture_data_please_switch_keyboard">Пожалуйста, переключитесь на %s</string>
     <string name="gesture_data_share_limit">Чтобы не превысить лимит размера, будут экспортированы только первые %s слов(а)</string>
+    <string name="sense_context_accessibility_description">Чтение видимого текста экрана на устройстве для проверки подсказок SenseKey.</string>
+    <string name="sense_context_panel_title">Контекст экрана</string>
+    <string name="sense_context_close">Закрыть</string>
+    <string name="sense_context_disabled">Сервис SenseKey Context не подключён. Включи его в специальных возможностях Android.</string>
+    <string name="sense_context_waiting">Жду свежий контекст этого приложения. Открой диалог или прокрути переписку.</string>
+    <string name="sense_context_empty">На этом экране нет видимого текста сообщений, доступного через специальные возможности.</string>
 </resources>

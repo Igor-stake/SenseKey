@@ -141,10 +141,29 @@ public class LatinIME extends InputMethodService implements
     private static volatile String sPendingInsert = null;
     private static volatile boolean sPendingReopenAiDialog = false;
 
-    // SenseKey pre-alpha: hardcoded contextual completion used to validate the IME UX
-    // before connecting a real local LLM.
+    // SenseKey pre-alpha: inspect local screen context before connecting a local LLM.
     private boolean mSensePrototypeVisible = false;
-    private int mSenseOriginalStripHeight = -1;
+    private boolean mSenseDismissedForTrigger = false;
+    private Integer mSenseOriginalStripHeight;
+    private android.widget.FrameLayout mSenseExpandedStrip;
+    private SuggestionStripView mSenseDiagnosticStripView;
+    private android.widget.TextView mSenseContextText;
+    private android.widget.TextView mSenseContextTitle;
+    private final Runnable mSenseRefreshRunnable = this::maybeShowSensePrototypeCompletion;
+    private final Runnable mSenseContextPollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            final EditorInfo editor = getCurrentInputEditorInfo();
+            if (!mSensePrototypeVisible || !isInputViewShown() || editor == null) {
+                hideSensePrototypeCompletion();
+                return;
+            }
+            // Poll only the in-process cache. Re-reading InputConnection every tick
+            // would add unnecessary cross-process calls while the user is idle.
+            updateSenseContextPanel(editor.packageName);
+            mHandler.postDelayed(this, 250L);
+        }
+    };
 
     public static void setPendingInsert(String text) {
         sPendingInsert = text;
@@ -748,6 +767,7 @@ public class LatinIME extends InputMethodService implements
 
     @Override
     public void onDestroy() {
+        hideSensePrototypeCompletion();
         mClipboardHistoryManager.onDestroy();
         mDictionaryFacilitator.closeDictionaries();
         mSettings.onDestroy();
@@ -805,6 +825,7 @@ public class LatinIME extends InputMethodService implements
 
     @Override
     public View onCreateInputView() {
+        hideSensePrototypeCompletion();
         StatsUtils.onCreateInputView();
         return mKeyboardSwitcher.onCreateInputView(KtxKt.getDisplayContext(this), mIsHardwareAcceleratedDrawingEnabled);
     }
@@ -929,7 +950,10 @@ public class LatinIME extends InputMethodService implements
     }
 
     void onStartInputViewInternal(final EditorInfo editorInfo, final boolean restarting) {
+        hideSensePrototypeCompletion();
+        mSenseDismissedForTrigger = false;
         super.onStartInputView(editorInfo, restarting);
+        scheduleSensePrototypeRefresh();
 
         // only for active gesture data gathering, remove when data gathering phase is done (end of 2026 latest)
         if (GestureDataGatheringKt.isInActiveGatheringMode(editorInfo)) {
@@ -1142,6 +1166,8 @@ public class LatinIME extends InputMethodService implements
     }
 
     private void cleanupInternalStateForFinishInput() {
+        hideSensePrototypeCompletion();
+        mSenseDismissedForTrigger = false;
         // Remove pending messages related to update suggestions
         mHandler.cancelUpdateSuggestionStrip();
         // Should do the following in onFinishInputInternal but until JB MR2 it's not called :(
@@ -1159,6 +1185,7 @@ public class LatinIME extends InputMethodService implements
                                   final int composingSpanStart, final int composingSpanEnd) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd,
                 composingSpanStart, composingSpanEnd);
+        scheduleSensePrototypeRefresh();
         if (DebugFlags.DEBUG_ENABLED) {
             Log.i(TAG, "onUpdateSelection: oss=" + oldSelStart + ", ose=" + oldSelEnd
                     + ", nss=" + newSelStart + ", nse=" + newSelEnd
@@ -2209,21 +2236,39 @@ public class LatinIME extends InputMethodService implements
         updateStateAfterInputTransaction(completeInputTransaction);
         mKeyboardSwitcher.onEvent(event, getCurrentAutoCapsState(), getCurrentRecapitalizeState());
 
-        // Let the regular suggestion machinery finish first, then overlay the SenseKey
-        // pre-alpha completion when the trigger text is present.
-        mHandler.postDelayed(this::maybeShowSensePrototypeCompletion, 120L);
+        scheduleSensePrototypeRefresh();
+    }
+
+    private void scheduleSensePrototypeRefresh() {
+        mHandler.removeCallbacks(mSenseRefreshRunnable);
+        mHandler.postDelayed(mSenseRefreshRunnable, 120L);
     }
 
     private void maybeShowSensePrototypeCompletion() {
-        if (!hasSuggestionStripView()) return;
+        final EditorInfo editor = getCurrentInputEditorInfo();
+        if (!hasSuggestionStripView() || !isInputViewShown() || editor == null
+                || getPackageName().equals(editor.packageName)
+                || mSettings.getCurrent().mInputAttributes.mIsPasswordField) {
+            hideSensePrototypeCompletion();
+            return;
+        }
 
         final android.view.inputmethod.InputConnection ic = getCurrentInputConnection();
-        if (ic == null) return;
+        if (ic == null) {
+            hideSensePrototypeCompletion();
+            return;
+        }
 
         final CharSequence beforeCursor;
         try {
             beforeCursor = ic.getTextBeforeCursor(96, 0);
+            final CharSequence selection = ic.getSelectedText(0);
+            if (!android.text.TextUtils.isEmpty(selection)) {
+                hideSensePrototypeCompletion();
+                return;
+            }
         } catch (Exception e) {
+            hideSensePrototypeCompletion();
             return;
         }
 
@@ -2232,65 +2277,110 @@ public class LatinIME extends InputMethodService implements
         final boolean shouldShow = before.trim().endsWith("Да,");
 
         if (!shouldShow) {
-            if (mSensePrototypeVisible) {
-                hideSensePrototypeCompletion();
-            }
+            hideSensePrototypeCompletion();
+            mSenseDismissedForTrigger = false;
             return;
         }
+        if (mSenseDismissedForTrigger) return;
 
-        final String screenContext = SenseContextCache.getRecentText(15_000L);
-        final android.widget.TextView completion = new android.widget.TextView(this);
-        if (screenContext.isEmpty()) {
-            completion.setText("CTX: нет данных\nSenseKey Context включён, но свежего текста не получено.");
-        } else {
-            String visibleContext = screenContext.trim();
-            if (visibleContext.length() > 1000) {
-                int cut = visibleContext.length() - 1000;
-                int boundary = visibleContext.indexOf(" | ", cut);
-                visibleContext = boundary >= 0
-                        ? visibleContext.substring(boundary + 3)
-                        : visibleContext.substring(cut);
-            }
-            visibleContext = visibleContext.replace(" | ", "\n");
-            final String packageName = SenseContextCache.getPackageName();
-            completion.setText("CTX " + (packageName.isEmpty() ? "" : "[" + packageName + "]") + "\n"
-                    + visibleContext);
+        if (!mSensePrototypeVisible) {
+            expandSensePrototypeStrip();
+            mSenseDiagnosticStripView = mSuggestionStripView;
+            mSenseDiagnosticStripView.showSenseDebugView(createSenseContextPanel());
+            mSensePrototypeVisible = true;
         }
-        completion.setSingleLine(false);
-        completion.setMaxLines(5);
-        completion.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        completion.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
-        completion.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f);
-        final int horizontalPadding = (int) (12f * getResources().getDisplayMetrics().density);
-        final int verticalPadding = (int) (8f * getResources().getDisplayMetrics().density);
-        completion.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
-        completion.setLayoutParams(new android.view.ViewGroup.LayoutParams(
+        updateSenseContextPanel(editor.packageName);
+        mHandler.removeCallbacks(mSenseContextPollRunnable);
+        mHandler.postDelayed(mSenseContextPollRunnable, 250L);
+    }
+
+    private android.view.View createSenseContextPanel() {
+        final android.widget.LinearLayout panel = new android.widget.LinearLayout(this);
+        panel.setOrientation(android.widget.LinearLayout.VERTICAL);
+        panel.setLayoutParams(new android.view.ViewGroup.LayoutParams(
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT));
+        final int color = mSettings.getCurrent().mColors.get(ColorType.KEY_TEXT);
+        final int padding = (int) (12f * getResources().getDisplayMetrics().density);
+        final android.widget.LinearLayout header = new android.widget.LinearLayout(this);
+        header.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        header.setPadding(padding, 0, padding, 0);
+        mSenseContextTitle = new android.widget.TextView(this);
+        mSenseContextTitle.setTextSize(14f);
+        mSenseContextTitle.setTextColor(color);
+        mSenseContextTitle.setMaxLines(1);
+        mSenseContextTitle.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        header.addView(mSenseContextTitle, new android.widget.LinearLayout.LayoutParams(
+                0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        final android.widget.TextView close = new android.widget.TextView(this);
+        close.setText(R.string.sense_context_close);
+        close.setTextColor(color);
+        close.setTextSize(14f);
+        close.setPadding(padding, 0, 0, 0);
+        close.setGravity(android.view.Gravity.CENTER);
+        close.setMinHeight((int) (48f * getResources().getDisplayMetrics().density));
+        close.setOnClickListener(view -> dismissSenseContextPanel());
+        header.addView(close);
+        panel.addView(header);
 
-        final float[] downX = new float[1];
+        final android.widget.ScrollView scroll = new android.widget.ScrollView(this);
+        scroll.setFillViewport(true);
+        mSenseContextText = new android.widget.TextView(this);
+        mSenseContextText.setTextSize(16f);
+        mSenseContextText.setTextColor(color);
+        mSenseContextText.setPadding(padding, 0, padding, padding / 2);
+        scroll.addView(mSenseContextText, new android.widget.ScrollView.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT));
+        panel.addView(scroll, new android.widget.LinearLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        // Vertical gestures scroll; a horizontal swipe dismisses without inserting debug text.
+        final float[] down = new float[2];
         final float swipeThreshold = 72f * getResources().getDisplayMetrics().density;
-        completion.setOnTouchListener((view, motionEvent) -> {
+        scroll.setOnTouchListener((view, motionEvent) -> {
             switch (motionEvent.getActionMasked()) {
                 case android.view.MotionEvent.ACTION_DOWN:
-                    downX[0] = motionEvent.getX();
-                    return true;
+                    down[0] = motionEvent.getX();
+                    down[1] = motionEvent.getY();
+                    break;
                 case android.view.MotionEvent.ACTION_UP:
-                    if (motionEvent.getX() - downX[0] >= swipeThreshold) {
-                        hideSensePrototypeCompletion();
+                    final float dx = motionEvent.getX() - down[0];
+                    final float dy = motionEvent.getY() - down[1];
+                    if (dx >= swipeThreshold && Math.abs(dx) > Math.abs(dy)) {
+                        dismissSenseContextPanel();
+                        return true;
                     }
-                    return true;
-                case android.view.MotionEvent.ACTION_CANCEL:
-                    return true;
-                default:
-                    return true;
+                    break;
             }
+            return false;
         });
+        return panel;
+    }
 
-        expandSensePrototypeStrip();
-        mSuggestionStripView.setSenseDebugMode(true);
-        mSuggestionStripView.setExternalSuggestionView(completion, false);
-        mSensePrototypeVisible = true;
+    private void updateSenseContextPanel(final String editorPackage) {
+        final SenseContextCache.Snapshot snapshot = SenseContextCache.getSnapshot();
+        final boolean recent = snapshot.isRecentFor(editorPackage, 15_000L);
+        final String title = getString(R.string.sense_context_panel_title)
+                + (recent ? " [" + snapshot.packageName + "]" : "");
+        final String text;
+        if (!snapshot.serviceConnected) {
+            text = getString(R.string.sense_context_disabled);
+        } else if (!recent) {
+            text = getString(R.string.sense_context_waiting);
+        } else if (snapshot.text.isEmpty()) {
+            text = getString(R.string.sense_context_empty);
+        } else {
+            text = snapshot.text;
+        }
+        // Reuse the panel and preserve scroll position when the capture has not changed.
+        if (!title.contentEquals(mSenseContextTitle.getText())) mSenseContextTitle.setText(title);
+        if (!text.contentEquals(mSenseContextText.getText())) mSenseContextText.setText(text);
+    }
+
+    private void dismissSenseContextPanel() {
+        mSenseDismissedForTrigger = true;
+        hideSensePrototypeCompletion();
     }
 
     private void expandSensePrototypeStrip() {
@@ -2298,27 +2388,37 @@ public class LatinIME extends InputMethodService implements
         if (strip == null) return;
         final android.view.ViewGroup.LayoutParams lp = strip.getLayoutParams();
         if (lp == null) return;
-        if (mSenseOriginalStripHeight < 0) {
+        if (mSenseOriginalStripHeight == null) {
             mSenseOriginalStripHeight = lp.height;
+            mSenseExpandedStrip = strip;
         }
-        lp.height = (int) (120f * getResources().getDisplayMetrics().density);
+        final float density = getResources().getDisplayMetrics().density;
+        lp.height = Math.max((int) (96f * density), Math.min((int) (180f * density),
+                getResources().getDisplayMetrics().heightPixels / 4));
         strip.setLayoutParams(lp);
     }
 
     private void hideSensePrototypeCompletion() {
+        mHandler.removeCallbacks(mSenseRefreshRunnable);
+        mHandler.removeCallbacks(mSenseContextPollRunnable);
+        final boolean wasVisible = mSensePrototypeVisible;
         mSensePrototypeVisible = false;
-        if (hasSuggestionStripView()) {
-            mSuggestionStripView.setSenseDebugMode(false);
+        if (mSenseDiagnosticStripView != null) {
+            mSenseDiagnosticStripView.clearSenseDebugView();
+            mSenseDiagnosticStripView = null;
         }
-        final android.widget.FrameLayout strip = mKeyboardSwitcher.getStripContainer();
-        if (strip != null && mSenseOriginalStripHeight >= 0) {
-            final android.view.ViewGroup.LayoutParams lp = strip.getLayoutParams();
+        if (mSenseExpandedStrip != null && mSenseOriginalStripHeight != null) {
+            final android.view.ViewGroup.LayoutParams lp = mSenseExpandedStrip.getLayoutParams();
             if (lp != null) {
                 lp.height = mSenseOriginalStripHeight;
-                strip.setLayoutParams(lp);
+                mSenseExpandedStrip.setLayoutParams(lp);
             }
         }
-        setNeutralSuggestionStrip();
+        mSenseExpandedStrip = null;
+        mSenseOriginalStripHeight = null;
+        mSenseContextText = null;
+        mSenseContextTitle = null;
+        if (wasVisible && hasSuggestionStripView()) setNeutralSuggestionStrip();
     }
 
     public void onTextInput(final String rawText) {
@@ -2328,6 +2428,7 @@ public class LatinIME extends InputMethodService implements
                 mInputLogic.onTextInput(mSettings.getCurrent(), event,
                         mKeyboardSwitcher.getKeyboardShiftMode(), mHandler);
         updateStateAfterInputTransaction(completeInputTransaction);
+        scheduleSensePrototypeRefresh();
         mInputLogic.restartSuggestionsOnWordTouchedByCursor(mSettings.getCurrent(), mKeyboardSwitcher.getCurrentKeyboardScript());
         mKeyboardSwitcher.onEvent(event, getCurrentAutoCapsState(), getCurrentRecapitalizeState());
     }

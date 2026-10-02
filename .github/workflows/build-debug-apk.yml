@@ -6,6 +6,11 @@ on:
     branches:
       - prealpha-hardcoded-completion
       - prealpha-accessibility-context
+      - prealpha-context-fixes
+
+concurrency:
+  group: sensekey-debug-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -23,8 +28,21 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v3
 
+      # A fresh runner otherwise generates a different signing key on every build.
+      # Preserve this development key so later APKs can update the installed app.
+      # This is a pre-alpha convenience: cache eviction still requires a reinstall.
+      # A persistent development signing key is needed for durable distribution.
+      - name: Cache development signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: sensekey-debug-keystore-v1
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      - name: Test context capture
+        run: ./gradlew :app:testRunTestsUnitTest --tests 'helium314.keyboard.latin.context.*' --stacktrace
 
       - name: Build with Gradle
         run: ./gradlew assembleDebug --stacktrace --info
@@ -34,6 +52,7 @@ jobs:
         with:
           name: SenseKey-debug
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
 
       - name: Archive reports for failed job
         uses: actions/upload-artifact@v4
