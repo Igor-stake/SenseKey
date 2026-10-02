@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 package helium314.keyboard.latin.completion
 
-import com.sun.net.httpserver.HttpServer
 import helium314.keyboard.latin.context.SenseContextCache
 import org.json.JSONObject
 import org.junit.After
@@ -10,7 +9,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.net.InetSocketAddress
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -23,9 +21,8 @@ import kotlin.test.assertTrue
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [35], manifest = Config.NONE)
 class SenseCompletionClientTest {
-    private lateinit var server: HttpServer
+    private lateinit var server: LoopbackHttpFixture
     private lateinit var base: String
-    private val serverWorker = Executors.newCachedThreadPool()
     private val calls = AtomicInteger()
     private val postBody = AtomicReference("")
     private val authHeader = AtomicReference<String?>()
@@ -38,35 +35,25 @@ class SenseCompletionClientTest {
     @Before fun setUp() {
         SenseContextCache.setServiceConnected(true)
         SenseContextCache.update("chat.test", 1, "Сможешь приехать завтра к 11?")
-        server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
-        server.executor = serverWorker
-        base = "http://127.0.0.1:${server.address.port}"
-        server.createContext("/v1/models") { exchange ->
+        server = LoopbackHttpFixture()
+        base = "http://127.0.0.1:${server.port}"
+        server.start { request ->
             calls.incrementAndGet()
-            val bytes = """{"data":[{"id":"loaded-test-model"}]}""".toByteArray()
-            exchange.sendResponseHeaders(200, bytes.size.toLong())
-            exchange.responseBody.use { it.write(bytes) }
-            exchange.close()
+            if (request.path == "/v1/models") {
+                LoopbackHttpFixture.Response(200, """{"data":[{"id":"loaded-test-model"}]}""", "")
+            } else {
+                postBody.set(request.body)
+                authHeader.set(request.headers["authorization"])
+                entered?.countDown()
+                release?.await(5, TimeUnit.SECONDS)
+                LoopbackHttpFixture.Response(status.get(), response.get(), location.get())
+            }
         }
-        server.createContext("/v1/chat/completions") { exchange ->
-            calls.incrementAndGet()
-            postBody.set(exchange.requestBody.bufferedReader().use { it.readText() })
-            authHeader.set(exchange.requestHeaders.getFirst("Authorization"))
-            entered?.countDown()
-            release?.await(5, TimeUnit.SECONDS)
-            if (location.get().isNotEmpty()) exchange.responseHeaders.add("Location", location.get())
-            val bytes = response.get().toByteArray(Charsets.UTF_8)
-            exchange.sendResponseHeaders(status.get(), bytes.size.toLong())
-            try { exchange.responseBody.use { it.write(bytes) } } catch (_: java.io.IOException) { }
-            exchange.close()
-        }
-        server.start()
     }
 
     @After fun tearDown() {
         release?.countDown()
-        server.stop(0)
-        serverWorker.shutdownNow()
+        server.close()
         SenseContextCache.setServiceConnected(false)
     }
 
