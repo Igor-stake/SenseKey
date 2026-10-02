@@ -323,6 +323,34 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
         updateKeys()
     }
 
+    /**
+     * Pre-alpha helper: let SenseKey use the whole suggestion strip for a multi-line
+     * context diagnostic instead of sharing the row with toolbar/pinned buttons.
+     */
+    fun setSenseDebugMode(enabled: Boolean) {
+        if (enabled) {
+            toolbarExpandKey.visibility = GONE
+            pinnedKeys.visibility = GONE
+            toolbarContainer.visibility = GONE
+            suggestionsStrip.visibility = VISIBLE
+            val lp = suggestionsStrip.layoutParams
+            if (lp is LinearLayout.LayoutParams) {
+                lp.width = 0
+                lp.weight = 1f
+                suggestionsStrip.layoutParams = lp
+            }
+        } else {
+            toolbarExpandKey.visibility = VISIBLE
+            val lp = suggestionsStrip.layoutParams
+            if (lp is LinearLayout.LayoutParams) {
+                lp.width = LinearLayout.LayoutParams.WRAP_CONTENT
+                lp.weight = 1f
+                suggestionsStrip.layoutParams = lp
+            }
+            setToolbarVisibility(false)
+        }
+    }
+
     fun setExternalSuggestionView(view: View?, addCloseButton: Boolean) {
         clear()
         isExternalSuggestionVisible = true
