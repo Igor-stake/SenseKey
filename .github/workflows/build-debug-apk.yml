@@ -44,8 +44,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Test context capture
-        run: ./gradlew :app:testRunTestsUnitTest --tests 'helium314.keyboard.latin.context.*' --stacktrace
+      - name: Test context capture and local completions
+        run: ./gradlew :app:testRunTestsUnitTest --tests 'helium314.keyboard.latin.context.*' --tests 'helium314.keyboard.latin.completion.*' --stacktrace
 
       - name: Build with Gradle
         run: ./gradlew assembleDebug --stacktrace --info

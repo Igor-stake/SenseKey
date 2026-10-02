@@ -11,6 +11,7 @@ import org.robolectric.shadows.ShadowSystemClock
 import java.time.Duration
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
@@ -69,6 +70,30 @@ class SenseContextCacheTest {
 
     private fun chat(text: String, label: String = "Test contact") =
         SenseContextExtractor.Screen("Toolbar\n$text", label, text)
+
+    @Test fun repeatedCaptureKeepsConversationGenerationButContactChangeDoesNot() {
+        SenseContextCache.update("com.whatsapp", 1, chat("Same message", "First contact"))
+        val first = SenseContextCache.getSnapshot().generation
+        SenseContextCache.update("com.whatsapp", 1, chat("Updated message", "First contact"))
+        assertEquals(first, SenseContextCache.getSnapshot().generation)
+        SenseContextCache.update("com.whatsapp", 1, chat("Same message", "Second contact"))
+        assertNotEquals(first, SenseContextCache.getSnapshot().generation)
+    }
+
+    @Test fun navigationRejectsPreviousGenerationEvenForSameNameAndText() {
+        SenseContextCache.update("com.whatsapp", 1, chat("Same message"))
+        val first = SenseContextCache.getSnapshot().generation
+        SenseContextCache.clear()
+        SenseContextCache.update("com.whatsapp", 1, chat("Same message"))
+        assertNotEquals(first, SenseContextCache.getSnapshot().generation)
+    }
+
+    @Test fun manualResetInvalidatesPredictionsEvenWhenTextDoesNotChange() {
+        SenseContextCache.update("com.whatsapp", 1, chat("Same message"))
+        val first = SenseContextCache.getSnapshot().generation
+        SenseContextCache.resetHistory()
+        assertNotEquals(first, SenseContextCache.getSnapshot().generation)
+    }
 
     @Test fun snapshotExposesBothCurrentScreenAndAccumulatedMessages() {
         val first = "Earlier message with enough text for overlap."

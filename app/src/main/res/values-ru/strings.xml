@@ -499,4 +499,25 @@
     <string name="sense_context_disabled">Сервис SenseKey Context не подключён. Включи его в специальных возможностях Android.</string>
     <string name="sense_context_waiting">Жду свежий контекст этого приложения. Открой диалог или прокрути переписку.</string>
     <string name="sense_context_empty">На этом экране нет видимого текста сообщений, доступного через специальные возможности.</string>
+    <string name="sense_completion_settings">Продолжения SenseKey</string>
+    <string name="sense_completion_setup_description">Запусти локальную модель на этом телефоне, затем набери «Да,» в переписке. Проведи вправо по предложенному продолжению, чтобы вставить его.\n\nКогда режим выключен, показывается прежнее окно диагностики контекста. Эти подсказки подключаются только к этому телефону.</string>
+    <string name="sense_completion_enabled">Подсказывать продолжение</string>
+    <string name="sense_completion_address">Адрес локального сервера</string>
+    <string name="sense_completion_model">Имя модели</string>
+    <string name="sense_completion_model_auto">Оставь пустым для определения загруженной модели</string>
+    <string name="sense_completion_check">Проверить модель</string>
+    <string name="sense_completion_checking">Проверяю локальную модель…</string>
+    <string name="sense_completion_model_found">Модель доступна: %1$s</string>
+    <string name="sense_completion_not_running">Локальная модель недоступна. Запусти сервер и проверь его адрес.</string>
+    <string name="sense_completion_save">Сохранить</string>
+    <string name="sense_completion_saved">Сохранено</string>
+    <string name="sense_completion_address_error">Используй http://127.0.0.1:порт, http://localhost:порт или http://[::1]:порт.</string>
+    <string name="sense_completion_model_error">Слишком длинное имя модели.</string>
+    <string name="sense_completion_working">Готовлю продолжение… Можно продолжать печатать.</string>
+    <string name="sense_completion_ready">%1$d мс · Свайп вправо для вставки</string>
+    <string name="sense_completion_timeout">Модель отвечала слишком долго. Повтори или уменьши её контекст.</string>
+    <string name="sense_completion_server_error">Локальный сервер отклонил запрос. Проверь модель и размер её контекста.</string>
+    <string name="sense_completion_response_error">Неожиданный ответ модели. Проверь поддержку chat completions у сервера.</string>
+    <string name="sense_completion_empty">Короткое продолжение не получено. Попробуй ещё раз.</string>
+    <string name="sense_completion_retry">Повторить</string>
 </resources>

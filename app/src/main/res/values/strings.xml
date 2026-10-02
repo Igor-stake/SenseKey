@@ -1242,4 +1242,25 @@ New dictionary:
     <string name="sense_context_disabled">SenseKey Context is not connected. Enable it in Android accessibility settings.</string>
     <string name="sense_context_waiting">Waiting for fresh context from this app. Open a conversation or scroll its messages.</string>
     <string name="sense_context_empty">This screen exposes no visible message text through accessibility.</string>
+    <string name="sense_completion_settings">SenseKey completions</string>
+    <string name="sense_completion_setup_description">Run a local model on this phone, then type “Да,” in a conversation. Swipe right over the suggested continuation to insert it.\n\nWhen disabled, the existing context diagnostic panel is shown. These completions connect only to this phone.</string>
+    <string name="sense_completion_enabled">Suggest a continuation</string>
+    <string name="sense_completion_address">Local server address</string>
+    <string name="sense_completion_model">Model name</string>
+    <string name="sense_completion_model_auto">Leave empty to detect the loaded model</string>
+    <string name="sense_completion_check">Check model</string>
+    <string name="sense_completion_checking">Checking the local model…</string>
+    <string name="sense_completion_model_found">Model available: %1$s</string>
+    <string name="sense_completion_not_running">Local model unavailable. Start the server and check its address.</string>
+    <string name="sense_completion_save">Save</string>
+    <string name="sense_completion_saved">Saved</string>
+    <string name="sense_completion_address_error">Use http://127.0.0.1:port, http://localhost:port or http://[::1]:port.</string>
+    <string name="sense_completion_model_error">Model name is too long.</string>
+    <string name="sense_completion_working">Preparing a continuation… You can keep typing.</string>
+    <string name="sense_completion_ready">%1$d ms · Swipe right to insert</string>
+    <string name="sense_completion_timeout">The model took too long. Try again or reduce its context.</string>
+    <string name="sense_completion_server_error">The local server rejected the request. Check the model and its context size.</string>
+    <string name="sense_completion_response_error">Unexpected model response. Check that the server supports chat completions.</string>
+    <string name="sense_completion_empty">No short continuation received. Try again.</string>
+    <string name="sense_completion_retry">Retry</string>
 </resources>

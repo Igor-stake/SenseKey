@@ -17,6 +17,8 @@ public final class SenseContextCache {
         public final int windowId;
         public final long updatedAt;
         public final boolean serviceConnected;
+        /** Changes even when navigation returns to an identically named conversation. */
+        public final long generation;
 
         private Snapshot(final String packageName, final int windowId, final long updatedAt,
                 final boolean connected, final SenseContextExtractor.Screen screen) {
@@ -24,6 +26,7 @@ public final class SenseContextCache {
             this.windowId = windowId;
             this.updatedAt = updatedAt;
             serviceConnected = connected;
+            generation = sGeneration;
             screenText = screen == null ? "" : screen.text;
             historySupported = screen != null && screen.supportsHistory();
             conversationLabel = historySupported ? screen.conversationLabel : "";
@@ -38,6 +41,7 @@ public final class SenseContextCache {
         }
     }
 
+    private static long sGeneration;
     private static final SenseContextHistory sHistory = new SenseContextHistory();
     private static SenseContextExtractor.Screen sScreen;
     private static volatile Snapshot sSnapshot = new Snapshot("", -1, 0L, false, null);
@@ -45,6 +49,7 @@ public final class SenseContextCache {
     private SenseContextCache() {}
 
     public static synchronized void setServiceConnected(final boolean connected) {
+        sGeneration++;
         sHistory.clear();
         sScreen = null;
         sSnapshot = new Snapshot("", -1, 0L, connected, null);
@@ -59,6 +64,13 @@ public final class SenseContextCache {
             final SenseContextExtractor.Screen screen) {
         final String pkg = packageName == null ? "" : packageName;
         final long now = android.os.SystemClock.elapsedRealtime();
+        final Snapshot old = sSnapshot;
+        final boolean recognized = screen != null && screen.supportsHistory();
+        final String label = recognized ? screen.conversationLabel : "";
+        if (!pkg.equals(old.packageName) || windowId != old.windowId
+                || recognized != old.historySupported || !label.equals(old.conversationLabel)) {
+            sGeneration++;
+        }
         sHistory.add(pkg, windowId, screen, now);
         sScreen = screen;
         sSnapshot = new Snapshot(pkg, windowId, now, sSnapshot.serviceConnected, screen);
@@ -71,12 +83,14 @@ public final class SenseContextCache {
 
     /** Hide the snapshot until the same chat is reverified after a geometry change. */
     static synchronized void invalidateWindow() {
+        sGeneration++;
         sScreen = null;
         sSnapshot = new Snapshot("", -1, 0L, sSnapshot.serviceConnected, null);
     }
 
     /** Keep the current screen as the first fragment after a user-requested reset. */
     public static synchronized void resetHistory() {
+        sGeneration++;
         sHistory.clear();
         if (sScreen == null) return;
         final Snapshot old = sSnapshot;
