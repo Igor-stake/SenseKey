@@ -113,7 +113,7 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
         <activity
             android:name="helium314.keyboard.latin.ai.ConversationActivity"
             android:process=":chat"
-            android:label="Deskdrop"
+            android:label="SenseKey"
             android:theme="@style/platformActivityTheme"
             android:exported="true"
             android:launchMode="singleTask"
@@ -135,7 +135,7 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
         <activity
             android:name="helium314.keyboard.latin.ai.ProcessTextActivity"
             android:process=":chat"
-            android:label="Deskdrop"
+            android:label="SenseKey"
             android:theme="@style/platformActivityTheme"
             android:exported="true"
             android:excludeFromRecents="true"
@@ -233,7 +233,7 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
         <!-- Single-button widgets -->
         <receiver
             android:name="helium314.keyboard.latin.ai.DeskdropWidgetVoice"
-            android:label="Deskdrop Voice"
+            android:label="SenseKey Voice"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -247,7 +247,7 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
 
         <receiver
             android:name="helium314.keyboard.latin.ai.DeskdropWidgetChat"
-            android:label="Deskdrop Chat"
+            android:label="SenseKey Chat"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -260,7 +260,7 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
 
         <receiver
             android:name="helium314.keyboard.latin.ai.DeskdropWidgetExecute"
-            android:label="Deskdrop Execute"
+            android:label="SenseKey Execute"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
