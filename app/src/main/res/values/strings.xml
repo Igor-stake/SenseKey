@@ -1232,4 +1232,4 @@ New dictionary:
     <string name="gesture_data_links">Information on gesture data gathering on:</string>
 
     <!-- new strings should go above the section for gesture data gathering -->
-</resources>
+    <string name="sense_context_accessibility_description">SenseKey context access for reply prediction testing.</string>\n</resources>
