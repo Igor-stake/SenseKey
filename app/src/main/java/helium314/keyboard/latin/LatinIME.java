@@ -144,6 +144,7 @@ public class LatinIME extends InputMethodService implements
     // SenseKey pre-alpha: hardcoded contextual completion used to validate the IME UX
     // before connecting a real local LLM.
     private boolean mSensePrototypeVisible = false;
+    private int mSenseOriginalStripHeight = -1;
 
     public static void setPendingInsert(String text) {
         sPendingInsert = text;
@@ -2232,8 +2233,7 @@ public class LatinIME extends InputMethodService implements
 
         if (!shouldShow) {
             if (mSensePrototypeVisible) {
-                mSensePrototypeVisible = false;
-                setNeutralSuggestionStrip();
+                hideSensePrototypeCompletion();
             }
             return;
         }
@@ -2241,18 +2241,29 @@ public class LatinIME extends InputMethodService implements
         final String screenContext = SenseContextCache.getRecentText(15_000L);
         final android.widget.TextView completion = new android.widget.TextView(this);
         if (screenContext.isEmpty()) {
-            completion.setText("CTX: нет данных — включите SenseKey Context в специальных возможностях");
+            completion.setText("CTX: нет данных\nSenseKey Context включён, но свежего текста не получено.");
         } else {
-            final String normalizedContext = screenContext.replace('\n', ' ').trim();
-            final int keep = Math.min(260, normalizedContext.length());
-            completion.setText("CTX: " + normalizedContext.substring(normalizedContext.length() - keep));
+            String visibleContext = screenContext.trim();
+            if (visibleContext.length() > 1000) {
+                int cut = visibleContext.length() - 1000;
+                int boundary = visibleContext.indexOf(" | ", cut);
+                visibleContext = boundary >= 0
+                        ? visibleContext.substring(boundary + 3)
+                        : visibleContext.substring(cut);
+            }
+            visibleContext = visibleContext.replace(" | ", "\n");
+            final String packageName = SenseContextCache.getPackageName();
+            completion.setText("CTX " + (packageName.isEmpty() ? "" : "[" + packageName + "]") + "\n"
+                    + visibleContext);
         }
-        completion.setSingleLine(true);
+        completion.setSingleLine(false);
+        completion.setMaxLines(5);
         completion.setEllipsize(android.text.TextUtils.TruncateAt.END);
-        completion.setGravity(android.view.Gravity.CENTER_VERTICAL);
-        completion.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
-        final int horizontalPadding = (int) (16f * getResources().getDisplayMetrics().density);
-        completion.setPadding(horizontalPadding, 0, horizontalPadding, 0);
+        completion.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
+        completion.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f);
+        final int horizontalPadding = (int) (12f * getResources().getDisplayMetrics().density);
+        final int verticalPadding = (int) (8f * getResources().getDisplayMetrics().density);
+        completion.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
         completion.setLayoutParams(new android.view.ViewGroup.LayoutParams(
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                 android.view.ViewGroup.LayoutParams.MATCH_PARENT));
@@ -2266,8 +2277,7 @@ public class LatinIME extends InputMethodService implements
                     return true;
                 case android.view.MotionEvent.ACTION_UP:
                     if (motionEvent.getX() - downX[0] >= swipeThreshold) {
-                        mSensePrototypeVisible = false;
-                        setNeutralSuggestionStrip();
+                        hideSensePrototypeCompletion();
                     }
                     return true;
                 case android.view.MotionEvent.ACTION_CANCEL:
@@ -2277,9 +2287,38 @@ public class LatinIME extends InputMethodService implements
             }
         });
 
+        expandSensePrototypeStrip();
+        mSuggestionStripView.setSenseDebugMode(true);
         mSuggestionStripView.setExternalSuggestionView(completion, false);
-        mSuggestionStripView.setToolbarVisibility(false);
         mSensePrototypeVisible = true;
+    }
+
+    private void expandSensePrototypeStrip() {
+        final android.widget.FrameLayout strip = mKeyboardSwitcher.getStripContainer();
+        if (strip == null) return;
+        final android.view.ViewGroup.LayoutParams lp = strip.getLayoutParams();
+        if (lp == null) return;
+        if (mSenseOriginalStripHeight < 0) {
+            mSenseOriginalStripHeight = lp.height;
+        }
+        lp.height = (int) (120f * getResources().getDisplayMetrics().density);
+        strip.setLayoutParams(lp);
+    }
+
+    private void hideSensePrototypeCompletion() {
+        mSensePrototypeVisible = false;
+        if (hasSuggestionStripView()) {
+            mSuggestionStripView.setSenseDebugMode(false);
+        }
+        final android.widget.FrameLayout strip = mKeyboardSwitcher.getStripContainer();
+        if (strip != null && mSenseOriginalStripHeight >= 0) {
+            final android.view.ViewGroup.LayoutParams lp = strip.getLayoutParams();
+            if (lp != null) {
+                lp.height = mSenseOriginalStripHeight;
+                strip.setLayoutParams(lp);
+            }
+        }
+        setNeutralSuggestionStrip();
     }
 
     public void onTextInput(final String rawText) {
