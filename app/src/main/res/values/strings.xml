@@ -9,11 +9,11 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"
     tools:ignore="MissingTranslation">
     <!-- Name of Android spell checker service. The app name should not be translated. -->
-    <string name="spell_checker_service_name">Deskdrop Spell Checker</string>
+    <string name="spell_checker_service_name">SenseKey Spell Checker</string>
     <!-- Title for IME settings screen. The app name should not be translated. -->
-    <string name="ime_settings">Deskdrop Settings</string>
+    <string name="ime_settings">SenseKey Settings</string>
     <!-- Title for the spell checking service settings screen. The app name should not be translated. -->
-    <string name="android_spell_checker_settings">Deskdrop Spell Checker Settings</string>
+    <string name="android_spell_checker_settings">SenseKey Spell Checker Settings</string>
     <!-- Option to provide vibrate/haptic feedback on keypress -->
     <string name="vibrate_on_keypress">Vibrate on keypress</string>
     <!-- Option to provide vibrate/haptic feedback on keypress even in do not disturb mode -->
@@ -66,7 +66,7 @@
     <string name="ollama_connecting">Connecting...</string>
     <string name="ollama_connected">Connected (%d models)</string>
     <string name="ollama_connection_failed">Connection failed: %s</string>
-    <string name="onboarding_title">Welcome to Deskdrop</string>
+    <string name="onboarding_title">Welcome to SenseKey</string>
     <string name="onboarding_subtitle">Your private AI keyboard</string>
     <string name="onboarding_ollama_description">Connect to your local Ollama server via Tailscale for fully private AI text improvement.</string>
     <string name="onboarding_ollama_url_hint">Ollama URL (e.g. http://100.x.x.x:11434)</string>
@@ -83,7 +83,7 @@
     <string name="ai_lorebook_summary">Personal context sent with every AI request (name, style, preferences)</string>
     <string name="ai_instruction">Instruction</string>
     <string name="ai_clear_text">Clear</string>
-    <string name="ai_settings_title">Deskdrop AI: Assist</string>
+    <string name="ai_settings_title">SenseKey AI: Assist</string>
     <string name="process_text_process">Process</string>
     <string name="process_text_preview">Preview</string>
     <string name="process_text_insert">Insert</string>
@@ -102,7 +102,7 @@
     <string name="ai_clear">Clear</string>
     <string name="ai_prompt_button">✨ AI Prompt</string>
     <string name="ai_prompt_hint">Describe what this model should do, then press AI Prompt to generate a professional instruction.</string>
-    <string name="ai_slot_title">Deskdrop AI: Slot %d</string>
+    <string name="ai_slot_title">SenseKey AI: Slot %d</string>
     <string name="ai_slot_cleared">Slot %d cleared</string>
     <string name="ai_slot_assigned">Slot %d: %s</string>
     <string name="ai_slot_none">(None - clear slot)</string>
@@ -116,7 +116,7 @@
     <string name="ai_inline_model_summary">Used for //rewrite, //translate, and similar commands</string>
     <string name="ai_conversation_model">Conversation model</string>
     <string name="ai_conversation_model_summary">Default model when opening the conversation view</string>
-    <string name="ai_voice_title">Deskdrop AI: Voice</string>
+    <string name="ai_voice_title">SenseKey AI: Voice</string>
     <string name="ai_voice_saved">Voice mode: %s</string>
     <string name="ai_voice_error">Could not show voice mode dialog</string>
     <string name="ai_voice_reply_title">Reply to copied message</string>
@@ -126,7 +126,7 @@
     <string name="ai_voice_engine_whisper">Whisper (server)</string>
     <string name="ai_voice_mode_label">Mode</string>
     <string name="ai_clipboard_empty">Clipboard is empty</string>
-    <string name="ai_clipboard_title">Deskdrop AI: Clipboard</string>
+    <string name="ai_clipboard_title">SenseKey AI: Clipboard</string>
     <string name="ai_clipboard_enter_instruction">Enter an instruction</string>
     <string name="ai_clipboard_no_models">No models available</string>
     <string name="ai_generating">Generating\u2026</string>
@@ -145,7 +145,7 @@
     <string name="shortcut_new_chat">New chat</string>
     <string name="shortcut_dictate">Dictate</string>
     <string name="shortcut_last_chat">Last chat</string>
-    <string name="tile_voice_label">Deskdrop Voice</string>
+    <string name="tile_voice_label">SenseKey Voice</string>
     <string name="voice_recording_title">Recording…</string>
     <string name="voice_recording_stop">Stop</string>
     <string name="voice_transcribing">Transcribing…</string>
@@ -959,8 +959,8 @@ New dictionary:
 \n&lt;i&gt;&lt;b&gt;Widget, Tile &amp;amp; Shortcuts&lt;/b&gt;&lt;/i&gt; &lt;br&gt; &lt;br&gt;
 \n► &lt;b&gt;Widget&lt;/b&gt;: microphone (record + transcribe), chat (new chat), execute (AI on clipboard). &lt;br&gt; &lt;br&gt;
 \n► &lt;b&gt;Quick Settings tile&lt;/b&gt;: tap to start/stop recording, transcribes and opens chat. &lt;br&gt; &lt;br&gt;
-\n► &lt;b&gt;Share&lt;/b&gt; text, images or PDFs to Deskdrop to open a chat with the shared content. &lt;br&gt; &lt;br&gt;
-\n► &lt;b&gt;Select text&lt;/b&gt; in any app and choose Deskdrop from the PROCESS_TEXT menu. &lt;br&gt; &lt;br&gt;
+\n► &lt;b&gt;Share&lt;/b&gt; text, images or PDFs to SenseKey to open a chat with the shared content. &lt;br&gt; &lt;br&gt;
+\n► &lt;b&gt;Select text&lt;/b&gt; in any app and choose SenseKey from the PROCESS_TEXT menu. &lt;br&gt; &lt;br&gt;
 \n► &lt;b&gt;Long-press the app icon&lt;/b&gt; for shortcuts: New chat, Dictate. &lt;br&gt; &lt;br&gt;
 \n&lt;i&gt;&lt;b&gt;Debug mode / debug APK&lt;/b&gt;&lt;/i&gt; &lt;br&gt; &lt;br&gt;
 \n► Long-press a suggestion to show the source dictionary. &lt;br&gt; &lt;br&gt;
