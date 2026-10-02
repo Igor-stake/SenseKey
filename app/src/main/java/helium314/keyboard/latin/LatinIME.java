@@ -140,6 +140,10 @@ public class LatinIME extends InputMethodService implements
     private static volatile String sPendingInsert = null;
     private static volatile boolean sPendingReopenAiDialog = false;
 
+    // SenseKey pre-alpha: hardcoded contextual completion used to validate the IME UX
+    // before connecting a real local LLM.
+    private boolean mSensePrototypeVisible = false;
+
     public static void setPendingInsert(String text) {
         sPendingInsert = text;
     }
@@ -2202,6 +2206,75 @@ public class LatinIME extends InputMethodService implements
                         mKeyboardSwitcher.getCurrentKeyboardScript(), mHandler);
         updateStateAfterInputTransaction(completeInputTransaction);
         mKeyboardSwitcher.onEvent(event, getCurrentAutoCapsState(), getCurrentRecapitalizeState());
+
+        // Let the regular suggestion machinery finish first, then overlay the SenseKey
+        // pre-alpha completion when the trigger text is present.
+        mHandler.postDelayed(this::maybeShowSensePrototypeCompletion, 120L);
+    }
+
+    private void maybeShowSensePrototypeCompletion() {
+        if (!hasSuggestionStripView()) return;
+
+        final android.view.inputmethod.InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+
+        final CharSequence beforeCursor;
+        try {
+            beforeCursor = ic.getTextBeforeCursor(96, 0);
+        } catch (Exception e) {
+            return;
+        }
+
+        final String before = beforeCursor == null ? "" : beforeCursor.toString();
+        // trim() deliberately makes both "Да," and "Да, " trigger the prototype.
+        final boolean shouldShow = before.trim().endsWith("Да,");
+
+        if (!shouldShow) {
+            if (mSensePrototypeVisible) {
+                mSensePrototypeVisible = false;
+                setNeutralSuggestionStrip();
+            }
+            return;
+        }
+
+        final android.widget.TextView completion = new android.widget.TextView(this);
+        completion.setText("буду завтра в 11.   → свайп");
+        completion.setSingleLine(true);
+        completion.setEllipsize(android.text.TextUtils.TruncateAt.END);
+        completion.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        completion.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 16f);
+        final int horizontalPadding = (int) (16f * getResources().getDisplayMetrics().density);
+        completion.setPadding(horizontalPadding, 0, horizontalPadding, 0);
+        completion.setLayoutParams(new android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT));
+
+        final float[] downX = new float[1];
+        final float swipeThreshold = 72f * getResources().getDisplayMetrics().density;
+        completion.setOnTouchListener((view, motionEvent) -> {
+            switch (motionEvent.getActionMasked()) {
+                case android.view.MotionEvent.ACTION_DOWN:
+                    downX[0] = motionEvent.getX();
+                    return true;
+                case android.view.MotionEvent.ACTION_UP:
+                    if (motionEvent.getX() - downX[0] >= swipeThreshold) {
+                        // Go through InputLogic rather than committing directly, so the IME
+                        // keeps its internal composing/cursor state consistent.
+                        onTextInput(" буду завтра в 11.");
+                        mSensePrototypeVisible = false;
+                        setNeutralSuggestionStrip();
+                    }
+                    return true;
+                case android.view.MotionEvent.ACTION_CANCEL:
+                    return true;
+                default:
+                    return true;
+            }
+        });
+
+        mSuggestionStripView.setExternalSuggestionView(completion, false);
+        mSuggestionStripView.setToolbarVisibility(false);
+        mSensePrototypeVisible = true;
     }
 
     public void onTextInput(final String rawText) {
