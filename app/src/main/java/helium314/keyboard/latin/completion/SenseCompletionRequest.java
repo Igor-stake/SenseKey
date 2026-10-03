@@ -11,20 +11,31 @@ public final class SenseCompletionRequest {
     public final int cursor;
     public final String draft;
     public final String context;
+    /** Exactly the bounded context placed in the HTTP payload, also used for UI counts. */
+    public final String payloadContext;
     public final String conversationLabel;
     public final long contextGeneration;
+    public final String replyLanguage;
 
     public SenseCompletionRequest(final long editorSession, final int fieldId,
             final String packageName, final int cursor, final String draft,
             final SenseContextCache.Snapshot snapshot) {
+        this(editorSession, fieldId, packageName, cursor, draft, snapshot, "");
+    }
+
+    public SenseCompletionRequest(final long editorSession, final int fieldId,
+            final String packageName, final int cursor, final String draft,
+            final SenseContextCache.Snapshot snapshot, final String replyLanguage) {
         this.editorSession = editorSession;
         this.fieldId = fieldId;
         this.packageName = packageName;
         this.cursor = cursor;
         this.draft = draft;
         context = snapshot.text;
+        payloadContext = SenseCompletionClient.safeTail(context, SenseCompletionClient.MAX_CONTEXT_CHARS);
         conversationLabel = snapshot.conversationLabel;
         contextGeneration = snapshot.generation;
+        this.replyLanguage = replyLanguage;
     }
 
     public boolean matchesEditor(final long session, final int field,

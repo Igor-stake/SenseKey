@@ -192,4 +192,41 @@ class SenseCompletionClientTest {
         assertTrue(data.getString("screen_context").endsWith("Latest relevant question"))
         assertEquals("ab", SenseCompletionClient.safeTail("😀ab", 3))
     }
+
+    @Test fun requestStagesAndDisplayedContextCountAgreeWithActualHttpPayload() {
+        SenseContextCache.update("chat.test", 1, "Old material\n".repeat(500) + "Recent question")
+        val request = request()
+        val stages = mutableListOf<SenseCompletionClient.Stage>()
+        val result = SenseCompletionClient().complete(base, "chosen-model", request,
+            SenseCompletionClient.Cancellation()) { stages.add(it) }
+        assertEquals(SenseCompletionClient.Error.NONE, result.error)
+        assertEquals(listOf(SenseCompletionClient.Stage.CONNECTING,
+            SenseCompletionClient.Stage.WAITING_FOR_MODEL), stages)
+        val messages = JSONObject(postBody.get()).getJSONArray("messages")
+        val data = JSONObject(messages.getJSONObject(1).getString("content"))
+        assertEquals(request.payloadContext, data.getString("screen_context"))
+        assertTrue(request.payloadContext.length <= 4_500)
+        assertTrue(request.payloadContext.length < request.context.length)
+    }
+
+    @Test fun emptyDraftGetsAReplyInTheKeyboardLanguageWithoutLeadingSpace() {
+        response.set("""{"choices":[{"message":{"content":"Скоро отвечу."},"finish_reason":"stop"}]}""")
+        val request = SenseCompletionRequest(1, 7, "chat.test", 0, "",
+            SenseContextCache.getSnapshot(), "ru-RU")
+        val result = SenseCompletionClient().complete(base, "chosen-model", request,
+            SenseCompletionClient.Cancellation())
+        assertEquals("Скоро отвечу.", result.suffix)
+        val data = JSONObject(JSONObject(postBody.get()).getJSONArray("messages")
+            .getJSONObject(1).getString("content"))
+        assertEquals("", data.getString("draft"))
+        assertEquals("ru-RU", data.getString("reply_language"))
+    }
+
+    @Test fun punctuationOrCaseVariantOfDraftIsNotShownAsAContinuation() {
+        for (raw in listOf("Да.", "да!", "ДА")) {
+            assertEquals("", SenseCompletionClient.cleanSuffix(raw, "Да,"), raw)
+        }
+        assertEquals("", SenseCompletionClient.cleanSuffix("Я думаю.", "Я думаю, "))
+        assertEquals(" стоит попробовать.", SenseCompletionClient.cleanSuffix("стоит попробовать.", "Я думаю,"))
+    }
 }
