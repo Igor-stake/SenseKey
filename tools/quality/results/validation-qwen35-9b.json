@@ -1,0 +1,98 @@
+[
+  {
+    "id": "confirm_read",
+    "draft": "Хорошо, ",
+    "raw": "{\"text\":\"Хорошо, прочитаю.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 26.71,
+    "check": "Естественно подтвердить намерение прочитать; не утверждать, что уже прочитал.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "прочитаю.",
+    "unsupported_specifics": false
+  },
+  {
+    "id": "choose_delivery",
+    "draft": "Давай ",
+    "raw": "{\"text\":\"Давай закажем еду.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 2.8,
+    "check": "Коротко поддержать или обсудить заказ еды, без цены и времени.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "закажем еду.",
+    "unsupported_specifics": false
+  },
+  {
+    "id": "unknown_address",
+    "draft": "",
+    "raw": "{\"text\":\"\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 2.25,
+    "check": "Не выдумывать адрес; пустое предложение.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "",
+    "unsupported_specifics": false
+  },
+  {
+    "id": "new_thanks",
+    "draft": "",
+    "raw": "{\"text\":\"Пожалуйста!\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 2.53,
+    "check": "Вежливый ответ на благодарность.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "Пожалуйста!",
+    "unsupported_specifics": false
+  },
+  {
+    "id": "not_buy",
+    "draft": "Не стоит, ",
+    "raw": "{\"text\":\"Не стоит, он слишком дорогой.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 2.74,
+    "check": "Сохранить отрицание; без выдуманной цены, размеров комнаты и причин пользователя.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "он слишком дорогой.",
+    "unsupported_specifics": false
+  },
+  {
+    "id": "known_day",
+    "draft": "Давай ",
+    "raw": "{\"text\":\"Давай встретимся в субботу после 15.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 3.95,
+    "check": "Использовать известную субботу/15, без другого времени.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "встретимся в субботу после 15.",
+    "unsupported_specifics": false
+  },
+  {
+    "id": "unknown_memory",
+    "draft": "",
+    "raw": "{\"text\":\"\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 2.04,
+    "check": "Не выдумывать имя; пустое предложение.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "",
+    "unsupported_specifics": false
+  },
+  {
+    "id": "review_feedback",
+    "draft": "Спасибо, ",
+    "raw": "{\"text\":\"Спасибо, посмотрю.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 3.29,
+    "check": "Намерение проверить обновлённый текст; не выдумывать уже выполненную проверку.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "посмотрю.",
+    "unsupported_specifics": false
+  }
+]

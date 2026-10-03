@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 /** Runs the production filter in ART, not the host JDK used by unit tests. */
 public final class SenseCompletionAndroidSmoke {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             boolean rejected = false;
             try {
@@ -30,6 +30,7 @@ public final class SenseCompletionAndroidSmoke {
         check(!SenseCompletionQuality.copiesHistory("Спасибо!", "Спасибо за помощь!"),
                 "A short acknowledgement must be allowed");
         System.out.println("PASS: production completion filter, 6 cases");
+        helium314.keyboard.latin.completion.SenseCompletionProtocolSmoke.run();
     }
 
     private static void check(boolean condition, String message) {

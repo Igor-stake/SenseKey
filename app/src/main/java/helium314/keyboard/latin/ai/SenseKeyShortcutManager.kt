@@ -15,7 +15,7 @@ import helium314.keyboard.latin.utils.DeviceProtectedUtils
  * Static shortcuts (new chat, dictate) are declared in res/xml/shortcuts.xml.
  * Dynamic shortcuts are rebuilt when cloud presets change.
  */
-object DeskdropShortcutManager {
+object SenseKeyShortcutManager {
 
     fun rebuildDynamicShortcuts(context: Context) {
         if (Build.VERSION.SDK_INT < 25) return

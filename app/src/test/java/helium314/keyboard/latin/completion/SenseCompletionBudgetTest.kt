@@ -23,17 +23,17 @@ class SenseCompletionBudgetTest {
     private fun request(draft: String = "Я думаю, ") = SenseCompletionRequest(
         4, 8, "chat.test", draft.length, draft, SenseContextCache.getSnapshot())
 
-    @Test fun incomingContextDoesNotGrantAnotherTwentyFiveSeconds() {
+    @Test fun incomingContextDoesNotResetTheDeadline() {
         val first = request()
         val budget = SenseCompletionBudget(first, 1_000)
-        assertEquals(15_000L, budget.remainingMillis(11_000))
+        assertEquals(40_000L, budget.remainingMillis(11_000))
         SenseContextCache.clear()
         SenseContextCache.update("chat.test", 1, "A changed question")
         val restarted = request()
         assertFalse(first.matchesContext(SenseContextCache.getSnapshot()))
         assertTrue(budget.matchesEditor(restarted.editorSession, restarted.fieldId,
             restarted.packageName, restarted.cursor, restarted.draft))
-        assertEquals(0L, budget.remainingMillis(26_000))
+        assertEquals(0L, budget.remainingMillis(51_000))
         assertEquals(0L, budget.remainingMillis(60_000))
     }
 
@@ -43,6 +43,6 @@ class SenseCompletionBudgetTest {
         assertFalse(budget.matchesEditor(4, 8, "chat.test", 7, "Завтра "))
         assertFalse(budget.matchesEditor(5, 8, "chat.test", first.cursor, first.draft))
         assertFalse(budget.matchesEditor(4, 9, "chat.test", first.cursor, first.draft))
-        assertEquals(25_000L, SenseCompletionBudget(request("Завтра "), 30_000).remainingMillis(30_000))
+        assertEquals(50_000L, SenseCompletionBudget(request("Завтра "), 30_000).remainingMillis(30_000))
     }
 }

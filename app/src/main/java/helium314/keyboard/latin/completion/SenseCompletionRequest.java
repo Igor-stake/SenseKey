@@ -11,6 +11,7 @@ public final class SenseCompletionRequest {
     public final int cursor;
     public final String draft;
     public final String context;
+    public final String visibleContext;
     /** Exactly the bounded context placed in the HTTP payload, also used for UI counts. */
     public final String payloadContext;
     public final String conversationLabel;
@@ -32,7 +33,8 @@ public final class SenseCompletionRequest {
         this.cursor = cursor;
         this.draft = draft;
         context = snapshot.text;
-        payloadContext = SenseCompletionClient.safeTail(context, SenseCompletionClient.MAX_CONTEXT_CHARS);
+        visibleContext = snapshot.visibleText;
+        payloadContext = SenseCompletionClient.packContext(context, visibleContext);
         conversationLabel = snapshot.conversationLabel;
         contextGeneration = snapshot.generation;
         this.replyLanguage = replyLanguage;
@@ -49,6 +51,7 @@ public final class SenseCompletionRequest {
     public boolean matchesContext(final SenseContextCache.Snapshot snapshot) {
         return snapshot.isRecentFor(packageName, 15_000L)
                 && contextGeneration == snapshot.generation && context.equals(snapshot.text)
+                && visibleContext.equals(snapshot.visibleText)
                 && conversationLabel.equals(snapshot.conversationLabel);
     }
 }

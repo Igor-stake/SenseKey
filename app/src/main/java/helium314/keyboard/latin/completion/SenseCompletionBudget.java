@@ -3,7 +3,7 @@ package helium314.keyboard.latin.completion;
 
 /** One deadline for a draft, including queueing and automatic restarts after context changes. */
 public final class SenseCompletionBudget {
-    public static final long TIMEOUT_MILLIS = 25_000L;
+    public static final long TIMEOUT_MILLIS = 50_000L;
     private final SenseCompletionRequest editor;
     private final long startedAt;
 

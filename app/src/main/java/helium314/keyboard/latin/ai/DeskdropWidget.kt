@@ -10,7 +10,7 @@ import android.widget.RemoteViews
 import helium314.keyboard.latin.R
 
 /**
- * Home screen widget with quick-access buttons for Deskdrop.
+ * Home screen widget with quick-access buttons for SenseKey.
  * - Mic: start voice recording (same as QS tile)
  * - Chat: open new conversation
  * - Execute: start voice recording in execute/MCP mode

@@ -74,13 +74,13 @@
     <string name="onboarding_skip">Skip for now</string>
     <string name="onboarding_done">Get Started</string>
     <string name="onboarding_about_title">Make AI write like you (optional)</string>
-    <string name="onboarding_about_subtitle">Makes AI responses sound more like you</string>
+    <string name="onboarding_about_subtitle">Profile for manual AI tools; phrase predictions do not use it yet</string>
     <string name="onboarding_about_hint">e.g. Write in Dutch. Keep it short and casual. Be professional in emails.</string>
     <string name="onboarding_cloud_hint">You can also use cloud AI models. Configure them in Settings &gt; AI.</string>
     <string name="ai_instruction_label">Base Model Instruction</string>
     <string name="ai_instruction_summary">Default prompt for base models. Custom models use their built-in prompt instead.</string>
     <string name="ai_lorebook_label">About me</string>
-    <string name="ai_lorebook_summary">Personal context sent with every AI request (name, style, preferences)</string>
+    <string name="ai_lorebook_summary">Profile for AI tools you run manually. SenseKey phrase predictions do not use this profile yet.</string>
     <string name="ai_instruction">Instruction</string>
     <string name="ai_clear_text">Clear</string>
     <string name="ai_settings_title">SenseKey AI: Assist</string>
@@ -1259,11 +1259,11 @@ New dictionary:
     <string name="sense_completion_queued">Request queued…</string>
     <string name="sense_completion_connecting">Connecting to the local model…</string>
     <string name="sense_completion_working">Request sent. Waiting for the model…</string>
-    <string name="sense_completion_context_prepared">Context prepared: %1$d of %2$d characters</string>
-    <string name="sense_completion_context_sent">Context sent: %1$d of %2$d characters</string>
+    <string name="sense_completion_context_prepared">Context prepared: %1$d characters</string>
+    <string name="sense_completion_context_sent">Context sent: %1$d characters</string>
     <string name="sense_completion_ready">%1$d ms · Swipe right to insert</string>
     <string name="sense_completion_timeout">The model did not respond in time. Tap Retry.</string>
-    <string name="sense_completion_deadline">No continuation after 25 seconds. Tap Retry.</string>
+    <string name="sense_completion_deadline">No continuation after 50 seconds. Tap Retry.</string>
     <string name="sense_completion_server_error">The local server rejected the request. Check the model and its context size.</string>
     <string name="sense_completion_response_error">Unexpected model response. Check that the server supports chat completions.</string>
     <string name="sense_completion_internal_error">Suggestion processing failed. You can keep typing.</string>
@@ -1284,4 +1284,5 @@ New dictionary:
     <string name="sense_setup_select">Select SenseKey as your keyboard</string>
     <string name="sense_builds">SenseKey builds on GitHub</string>
     <string name="sense_settings_back">Back</string>
+    <string name="sense_completion_unsupported">The model added an unsupported number or date. Suggestion hidden.</string>
 </resources>

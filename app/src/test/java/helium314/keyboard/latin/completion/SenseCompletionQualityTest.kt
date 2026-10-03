@@ -43,4 +43,18 @@ class SenseCompletionQualityTest {
         assertFalse(SenseCompletionQuality.copiesHistory("что это стоит обсудить лично.",
             "Когда встретимся?"))
     }
+    @Test fun newNumbersAndRussianCalendarDetailsNeedAnInputSource() {
+        assertTrue(SenseCompletionQuality.addsUnsupportedSpecifics("приеду в пятницу в 19.",
+            "Когда удобно?", "Давай "))
+        assertTrue(SenseCompletionQuality.addsUnsupportedSpecifics("давай завтра.",
+            "Сможешь сегодня?", "Не смогу, "))
+        assertFalse(SenseCompletionQuality.addsUnsupportedSpecifics("в пятницу после 19.",
+            "На пятницу свободен после 19.", "Давай "))
+        assertFalse(SenseCompletionQuality.addsUnsupportedSpecifics("буду к 11.",
+            "Сможешь подъехать к 11?", "Да, "))
+        assertFalse(SenseCompletionQuality.addsUnsupportedSpecifics("проверю завтра.",
+            "Пришёл файл.", "Завтра "))
+        assertFalse(SenseCompletionQuality.addsUnsupportedSpecifics("Пожалуйста!",
+            "Спасибо!", ""))
+    }
 }

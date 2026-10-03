@@ -479,7 +479,7 @@ object AiToolRegistry {
             conn.connectTimeout = FETCH_TIMEOUT_MS
             conn.readTimeout = FETCH_TIMEOUT_MS
             conn.requestMethod = "GET"
-            conn.setRequestProperty("User-Agent", "Deskdrop/1.0 (+fetch_url tool)")
+            conn.setRequestProperty("User-Agent", "SenseKey/1.0 (+fetch_url tool)")
             conn.setRequestProperty("Accept", "text/html,text/plain,application/json;q=0.9,*/*;q=0.5")
             conn.instanceFollowRedirects = true
             val code = conn.responseCode
@@ -699,7 +699,7 @@ object AiToolRegistry {
                 connectTimeout = 10_000
                 readTimeout = 10_000
                 requestMethod = "GET"
-                setRequestProperty("User-Agent", "Deskdrop/1.0 (+weather tool)")
+                setRequestProperty("User-Agent", "SenseKey/1.0 (+weather tool)")
                 setRequestProperty("Accept", "application/json")
                 instanceFollowRedirects = true
             }
@@ -856,7 +856,7 @@ object AiToolRegistry {
                 doOutput = true
                 setRequestProperty("Content-Type", "application/json")
                 setRequestProperty("Accept", "application/json")
-                setRequestProperty("User-Agent", "Deskdrop/1.0 (+web_search tool)")
+                setRequestProperty("User-Agent", "SenseKey/1.0 (+web_search tool)")
             }
             conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
             val code = conn.responseCode
@@ -1038,7 +1038,7 @@ object AiToolRegistry {
                 setRequestProperty("Accept", "application/json")
                 setRequestProperty("Accept-Encoding", "identity")
                 setRequestProperty("X-Subscription-Token", apiKey)
-                setRequestProperty("User-Agent", "Deskdrop/1.0 (+web_search tool)")
+                setRequestProperty("User-Agent", "SenseKey/1.0 (+web_search tool)")
                 instanceFollowRedirects = true
             }
             val code = conn.responseCode

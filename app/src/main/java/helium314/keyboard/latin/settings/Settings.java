@@ -111,8 +111,8 @@ public final class Settings implements SharedPreferences.OnSharedPreferenceChang
     public static final String PREF_WHISPER_URL = "whisper_url";
     public static final String PREF_WHISPER_URL_FALLBACK = "whisper_url_fallback";
     public static final String PREF_WHISPER_MODEL = "whisper_model";
-    public static final String PREF_DESKDROP_ONBOARDING_DONE = "deskdrop_onboarding_done";
-    public static final String PREF_DESKDROP_SETUP_V2 = "deskdrop_setup_v2";
+    public static final String PREF_SENSEKEY_ONBOARDING_DONE = "deskdrop_onboarding_done";
+    public static final String PREF_SENSEKEY_SETUP_V2 = "deskdrop_setup_v2";
     public static final String PREF_LAYOUT_PREFIX = "layout_";
 
     public static final String PREF_AUTO_CAP = "auto_cap";

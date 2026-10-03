@@ -3,7 +3,7 @@
     SPDX-License-Identifier: GPL-3.0-only
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Deskdrop teal branding, overriding system dynamic colors -->
+    <!-- SenseKey teal branding, overriding system dynamic colors -->
     <color name="highlight_color_lxx_light">#1A6B5A</color>
     <color name="gesture_trail_color_lxx_light">#4ECDB5</color>
 

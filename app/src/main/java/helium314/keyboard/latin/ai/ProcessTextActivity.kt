@@ -91,7 +91,7 @@ class ProcessTextActivity : ComponentActivity() {
                     selectedText = selectedText,
                     onCopyAndFinish = { text ->
                         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        cm.setPrimaryClip(ClipData.newPlainText("Deskdrop", text))
+                        cm.setPrimaryClip(ClipData.newPlainText("SenseKey", text))
                         Toast.makeText(this, getString(R.string.ai_result_copied), Toast.LENGTH_SHORT).show()
                         setResult(Activity.RESULT_CANCELED)
                         finish()

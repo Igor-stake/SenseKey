@@ -386,10 +386,10 @@ private fun GeneralTab(
             prefKey = Settings.PREF_AI_LOREBOOK,
             label = stringResource(R.string.ai_lorebook_label),
             placeholder = "Tap to tell the AI about yourself…",
-            dialogDescription = "Tell the AI about yourself. This context is included with every request so the AI knows your name, writing style, preferences, etc."
+            dialogDescription = stringResource(R.string.ai_lorebook_summary)
         )
         Text(
-            "Tell the AI about yourself. This context is included with every request so the AI knows your name, writing style, preferences, etc.",
+            stringResource(R.string.ai_lorebook_summary),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
             modifier = Modifier.padding(horizontal = 16.dp)

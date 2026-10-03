@@ -49,7 +49,7 @@ object ReminderScheduler {
             "Reminders",
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Deskdrop AI reminders"
+            description = "SenseKey AI reminders"
             enableLights(true)
             enableVibration(true)
         }

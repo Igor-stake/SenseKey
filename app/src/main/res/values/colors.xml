@@ -64,7 +64,7 @@
     <color name="foreground">#000</color>
     <color name="foreground_weak">#555</color>
     <color name="toast_background">#666666</color>
-    <color name="highlight_color_lxx_light">#1A6B5A</color> <!-- Deskdrop teal accent -->
+    <color name="highlight_color_lxx_light">#1A6B5A</color> <!-- SenseKey teal accent -->
     <color name="keyboard_background">@color/keyboard_background_light</color>
 
     <!-- Actually used keyboard default background colors -->

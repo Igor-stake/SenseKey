@@ -2508,7 +2508,7 @@ public class LatinIME extends InputMethodService implements
         mSenseCompletionPending = true;
         mSenseCompletionStatus.setText(R.string.sense_completion_queued);
         mSenseCompletionContextInfo.setText(getString(R.string.sense_completion_context_prepared,
-                request.payloadContext.length(), request.context.length()));
+                request.payloadContext.length()));
         if (mSenseCompletionBudget == null) {
             mSenseCompletionBudget = new SenseCompletionBudget(request, android.os.SystemClock.uptimeMillis());
             mHandler.postDelayed(mSenseCompletionDeadline, SenseCompletionBudget.TIMEOUT_MILLIS);
@@ -2522,7 +2522,7 @@ public class LatinIME extends InputMethodService implements
                                 ? R.string.sense_completion_connecting : R.string.sense_completion_working);
                         if (stage == SenseCompletionClient.Stage.WAITING_FOR_MODEL) {
                             mSenseCompletionContextInfo.setText(getString(R.string.sense_completion_context_sent,
-                                    request.payloadContext.length(), request.context.length()));
+                                    request.payloadContext.length()));
                         }
                     }));
             mHandler.post(() -> {
@@ -2569,6 +2569,7 @@ public class LatinIME extends InputMethodService implements
             case INTERNAL: return R.string.sense_completion_internal_error;
             case EMPTY: return R.string.sense_completion_empty;
             case ECHO: return R.string.sense_completion_echo;
+            case UNSUPPORTED: return R.string.sense_completion_unsupported;
             default: return R.string.sense_completion_not_running;
         }
     }

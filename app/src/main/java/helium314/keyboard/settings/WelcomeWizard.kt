@@ -31,7 +31,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -89,7 +88,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private val DeskdropTeal = Color(0xFF2D8B7A)
+private val SenseKeyTeal = Color(0xFF2D8B7A)
 
 private val wizardCloudModels = listOf(
     "Llama 4 Scout (Groq)" to "groq:meta-llama/llama-4-scout-17b-16e-instruct",
@@ -123,7 +122,7 @@ fun WelcomeWizard(
     }
     val prefs = ctx.prefs()
     val imm = ctx.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-    val setupDone = prefs.getBoolean(helium314.keyboard.latin.settings.Settings.PREF_DESKDROP_SETUP_V2, false)
+    val setupDone = prefs.getBoolean(helium314.keyboard.latin.settings.Settings.PREF_SENSEKEY_SETUP_V2, false)
 
     fun determineSetupStep(): Int {
         val enabled = UncachedInputMethodManagerUtils.isThisImeEnabled(ctx, imm)
@@ -211,7 +210,7 @@ fun WelcomeWizard(
 
     fun saveAiAndClose() {
         val editor = prefs.edit()
-        editor.putBoolean(helium314.keyboard.latin.settings.Settings.PREF_DESKDROP_SETUP_V2, true)
+        editor.putBoolean(helium314.keyboard.latin.settings.Settings.PREF_SENSEKEY_SETUP_V2, true)
         editor.putBoolean(helium314.keyboard.latin.settings.Settings.PREF_AI_ALLOW_NETWORK_TOOLS, allowNetworkTools)
         editor.putBoolean(helium314.keyboard.latin.settings.Settings.PREF_AI_ALLOW_ACTIONS, allowActions)
         if (aboutMe.isNotBlank()) {
@@ -257,7 +256,7 @@ fun WelcomeWizard(
             editor.putString(helium314.keyboard.latin.settings.Settings.PREF_AI_VOICE_MODEL, autoModel)
         }
         val commitResult = editor.commit()
-        Log.d("WelcomeWizard", "commit()=$commitResult, setup_v2=${prefs.getBoolean(helium314.keyboard.latin.settings.Settings.PREF_DESKDROP_SETUP_V2, false)}, model=${prefs.getString(helium314.keyboard.latin.settings.Settings.PREF_AI_MODEL, "")}")
+        Log.d("WelcomeWizard", "commit()=$commitResult, setup_v2=${prefs.getBoolean(helium314.keyboard.latin.settings.Settings.PREF_SENSEKEY_SETUP_V2, false)}, model=${prefs.getString(helium314.keyboard.latin.settings.Settings.PREF_AI_MODEL, "")}")
         if (!commitResult) {
             editor.apply()
             Log.w("WelcomeWizard", "commit() failed, used apply() as fallback")
@@ -295,7 +294,7 @@ fun WelcomeWizard(
                 )
             } else if (step <= 3) {
                 Text(
-                    stringResource(R.string.setup_steps_title, "Deskdrop"),
+                    stringResource(R.string.setup_steps_title, "SenseKey"),
                     style = MaterialTheme.typography.displayMedium,
                     textAlign = TextAlign.Center,
                     color = titleColor,
@@ -313,7 +312,7 @@ fun WelcomeWizard(
                     stringResource(R.string.onboarding_title),
                     style = MaterialTheme.typography.displaySmall,
                     textAlign = TextAlign.Center,
-                    color = DeskdropTeal,
+                    color = SenseKeyTeal,
                 )
                 Text(
                     stringResource(R.string.onboarding_subtitle),
@@ -340,18 +339,18 @@ fun WelcomeWizard(
                         BitmapFactory.decodeResource(LocalContext.current.resources, R.mipmap.ic_launcher_foreground)
                             .asImageBitmap()
                     ),
-                    contentDescription = "Deskdrop",
+                    contentDescription = "SenseKey",
                     modifier = Modifier.size(40.dp)
                 )
                 Spacer(Modifier.width(12.dp))
                 Box(
                     modifier = Modifier.weight(1f).height(6.dp)
-                        .background(DeskdropTeal.copy(alpha = 0.15f), RoundedCornerShape(3.dp))
+                        .background(SenseKeyTeal.copy(alpha = 0.15f), RoundedCornerShape(3.dp))
                 ) {
                     Box(
                         modifier = Modifier.height(6.dp)
                             .fillMaxWidth(progress)
-                            .background(DeskdropTeal, RoundedCornerShape(3.dp))
+                            .background(SenseKeyTeal, RoundedCornerShape(3.dp))
                     )
                 }
             }
@@ -363,7 +362,7 @@ fun WelcomeWizard(
         Text(
             title,
             style = MaterialTheme.typography.headlineMedium,
-            color = DeskdropTeal,
+            color = SenseKeyTeal,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         )
@@ -377,7 +376,7 @@ fun WelcomeWizard(
         Button(
             onClick = action,
             modifier = Modifier.fillMaxWidth().height(52.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
         ) {
             Text(buttonText, style = MaterialTheme.typography.titleMedium)
         }
@@ -396,7 +395,7 @@ fun WelcomeWizard(
                 Text(
                     "How do you want to start?",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = DeskdropTeal,
+                    color = SenseKeyTeal,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -431,7 +430,7 @@ fun WelcomeWizard(
                         } else setupStep
                     },
                     Modifier.fillMaxWidth().height(52.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                    colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                 ) { Text("Continue", style = MaterialTheme.typography.titleMedium, color = Color.White) }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = { saveAiAndClose() }, Modifier.fillMaxWidth()) {
@@ -452,8 +451,8 @@ fun WelcomeWizard(
                 }
                 if (step == 2) {
                     SetupStep(
-                        "Turn on Deskdrop",
-                        "Turn on Deskdrop to use it as your keyboard.",
+                        "Turn on SenseKey",
+                        "Turn on SenseKey to use it as your keyboard.",
                         "Open Keyboard Settings"
                     ) {
                         val intent = Intent()
@@ -463,8 +462,8 @@ fun WelcomeWizard(
                     }
                 } else { // step 3
                     SetupStep(
-                        "Switch to Deskdrop",
-                        "Select Deskdrop as your active keyboard.",
+                        "Switch to SenseKey",
+                        "Select SenseKey as your active keyboard.",
                         "Switch Keyboard"
                     ) { imm.showInputMethodPicker()  }
                 }
@@ -477,9 +476,9 @@ fun WelcomeWizard(
                     // Step 4: Cloud vs Local choice (Advanced users only)
                     4 -> {
                         Text(
-                            "How do you want to use Deskdrop?",
+                            "How do you want to use SenseKey?",
                             style = MaterialTheme.typography.headlineMedium,
-                            color = DeskdropTeal,
+                            color = SenseKeyTeal,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -510,7 +509,7 @@ fun WelcomeWizard(
                         Button(
                             onClick = { step = if (selectedMode == "local") 5 else 6 },
                             Modifier.fillMaxWidth().height(52.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                         ) { Text("Continue", style = MaterialTheme.typography.titleMedium, color = Color.White) }
                         Spacer(Modifier.height(8.dp))
                         OutlinedButton(onClick = { step = 1 }, Modifier.fillMaxWidth()) { Text("Back") }
@@ -518,7 +517,7 @@ fun WelcomeWizard(
 
                     // Step 5: Local (Ollama) config
                     5 -> {
-                        Text("Connect to Ollama", style = MaterialTheme.typography.titleLarge, color = DeskdropTeal)
+                        Text("Connect to Ollama", style = MaterialTheme.typography.titleLarge, color = SenseKeyTeal)
                         Spacer(Modifier.height(4.dp))
                         Text("Run AI locally. No data leaves your device.",
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
@@ -553,11 +552,11 @@ fun WelcomeWizard(
                                     }
                                 },
                                 enabled = ollamaStatus !is OllamaStatus.Connecting && ollamaUrl.isNotBlank(),
-                                colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                                colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                             ) { Text(if (ollamaStatus is OllamaStatus.Connected) "Test again" else stringResource(R.string.ollama_test_connection)) }
                             when (val s = ollamaStatus) {
-                                is OllamaStatus.Connecting -> CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = DeskdropTeal)
-                                is OllamaStatus.Connected -> Text("\u2705 Connected to Ollama \u2014 ${s.count} models available", color = DeskdropTeal, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
+                                is OllamaStatus.Connecting -> CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = SenseKeyTeal)
+                                is OllamaStatus.Connected -> Text("\u2705 Connected to Ollama \u2014 ${s.count} models available", color = SenseKeyTeal, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
                                 is OllamaStatus.Failed -> Text("\u274C ${s.error}", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, maxLines = 2)
                                 is OllamaStatus.Idle -> {}
                             }
@@ -578,14 +577,14 @@ fun WelcomeWizard(
                         ) {
                             Text(
                                 if (openAiCompatExpanded) "\u25B2" else "\u25BC",
-                                color = DeskdropTeal,
+                                color = SenseKeyTeal,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 "Use a different local server",
                                 style = MaterialTheme.typography.titleSmall,
-                                color = DeskdropTeal,
+                                color = SenseKeyTeal,
                                 fontWeight = FontWeight.Medium
                             )
                         }
@@ -626,7 +625,7 @@ fun WelcomeWizard(
                             onClick = { step = 8 },
                             Modifier.fillMaxWidth(),
                             enabled = selectedOllamaModel.isNotBlank() && ollamaStatus is OllamaStatus.Connected,
-                            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                         ) { Text("Continue") }
                         if (!(selectedOllamaModel.isNotBlank() && ollamaStatus is OllamaStatus.Connected)) {
                             Spacer(Modifier.height(4.dp))
@@ -642,9 +641,9 @@ fun WelcomeWizard(
                     6 -> {
                         var showGroqKeyDialog by rememberSaveable { mutableStateOf(false) }
                         var showGeminiKeyDialog by rememberSaveable { mutableStateOf(false) }
-                        var showGroqGuideVideo by rememberSaveable { mutableStateOf(false) }
+                        var showGroqGuide by rememberSaveable { mutableStateOf(false) }
 
-                        Text("Cloud AI Setup", style = MaterialTheme.typography.titleLarge, color = DeskdropTeal)
+                        Text("Cloud AI Setup", style = MaterialTheme.typography.titleLarge, color = SenseKeyTeal)
                         Spacer(Modifier.height(8.dp))
                         Text("Cloud models require a free API key",
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
@@ -660,35 +659,19 @@ fun WelcomeWizard(
                             OutlinedButton(
                                 onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://console.groq.com/keys"))) },
                                 modifier = Modifier.weight(1f)
-                            ) { Text("Get API key", color = DeskdropTeal) }
+                            ) { Text("Get API key", color = SenseKeyTeal) }
                             OutlinedButton(
-                                onClick = { showGroqGuideVideo = !showGroqGuideVideo },
+                                onClick = { showGroqGuide = !showGroqGuide },
                                 modifier = Modifier.weight(1f)
-                            ) { Text(if (showGroqGuideVideo) "\u25A0 Hide" else "\u25B6 Guide", color = DeskdropTeal) }
+                            ) { Text(if (showGroqGuide) "Hide guide" else "Guide", color = SenseKeyTeal) }
                         }
-                        if (showGroqGuideVideo) {
+                        if (showGroqGuide) {
                             Spacer(Modifier.height(8.dp))
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                AndroidView(
-                                    factory = { ctx2 ->
-                                        android.widget.VideoView(ctx2).apply {
-                                            val mc = android.widget.MediaController(ctx2)
-                                            mc.setAnchorView(this)
-                                            setMediaController(mc)
-                                            val uri = android.net.Uri.parse("android.resource://${ctx.packageName}/${helium314.keyboard.latin.R.raw.onboarding_groq_guide_video}")
-                                            setVideoURI(uri)
-                                            setOnPreparedListener { mp ->
-                                                mp.isLooping = true
-                                                mp.setVolume(0f, 0f)
-                                                start()
-                                            }
-                                        }
-                                    },
-                                    modifier = Modifier.fillMaxWidth(0.85f).aspectRatio(886f / 1520f).clip(RoundedCornerShape(12.dp))
-                                )
+                                Text("Open the API key page, create a key, and paste it above.", style = MaterialTheme.typography.bodySmall)
                             }
                         }
 
@@ -702,7 +685,7 @@ fun WelcomeWizard(
                         OutlinedButton(
                             onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://aistudio.google.com/"))) },
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("Get Gemini API key", color = DeskdropTeal) }
+                        ) { Text("Get Gemini API key", color = SenseKeyTeal) }
                         Text(
                             "Gemini availability depends on your country.",
                             style = MaterialTheme.typography.bodySmall,
@@ -722,7 +705,7 @@ fun WelcomeWizard(
                             onClick = { step = 8 },
                             Modifier.fillMaxWidth(),
                             enabled = groqApiKey.isNotBlank() || geminiApiKey.isNotBlank(),
-                            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                         ) { Text("Continue") }
                         Spacer(Modifier.height(8.dp))
                         OutlinedButton(onClick = { step = 4 }, Modifier.fillMaxWidth()) { Text("Back") }
@@ -752,7 +735,7 @@ fun WelcomeWizard(
                         Text(
                             stringResource(R.string.onboarding_about_title),
                             style = MaterialTheme.typography.titleLarge,
-                            color = DeskdropTeal
+                            color = SenseKeyTeal
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
@@ -767,8 +750,8 @@ fun WelcomeWizard(
                             modifier = Modifier.fillMaxWidth().height(140.dp),
                             placeholder = { Text(stringResource(R.string.onboarding_about_hint), style = MaterialTheme.typography.bodyMedium) },
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = DeskdropTeal,
-                                cursorColor = DeskdropTeal
+                                focusedBorderColor = SenseKeyTeal,
+                                cursorColor = SenseKeyTeal
                             ),
                             textStyle = MaterialTheme.typography.bodyMedium
                         )
@@ -776,7 +759,7 @@ fun WelcomeWizard(
                         Button(
                             onClick = { step = 8 },
                             Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                         ) { Text("Continue") }
                         Spacer(Modifier.height(8.dp))
                         OutlinedButton(
@@ -789,7 +772,7 @@ fun WelcomeWizard(
 
                     // Step 8: Try AI
                     8 -> {
-                        Text("Try it out", style = MaterialTheme.typography.titleLarge, color = DeskdropTeal)
+                        Text("Try it out", style = MaterialTheme.typography.titleLarge, color = SenseKeyTeal)
                         Spacer(Modifier.height(4.dp))
                         Text("See how AI improves your text",
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
@@ -856,7 +839,7 @@ fun WelcomeWizard(
                             },
                             modifier = Modifier.fillMaxWidth().height(52.dp),
                             enabled = !testRunning && !testDone,
-                            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                         ) {
                             if (testRunning) {
                                 CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = Color.White)
@@ -873,12 +856,12 @@ fun WelcomeWizard(
                         if (testStatus != null) {
                             Spacer(Modifier.height(12.dp))
                             Box(Modifier.fillMaxWidth().background(
-                                if (testStatus!!.startsWith("\u274C")) MaterialTheme.colorScheme.error.copy(alpha = 0.08f) else DeskdropTeal.copy(alpha = 0.10f),
+                                if (testStatus!!.startsWith("\u274C")) MaterialTheme.colorScheme.error.copy(alpha = 0.08f) else SenseKeyTeal.copy(alpha = 0.10f),
                                 RoundedCornerShape(8.dp)
                             ).padding(12.dp)) {
                                 Column {
                                     if (!testStatus!!.startsWith("\u274C")) {
-                                        Text("\u2192 AI result:", style = MaterialTheme.typography.labelSmall, color = DeskdropTeal)
+                                        Text("\u2192 AI result:", style = MaterialTheme.typography.labelSmall, color = SenseKeyTeal)
                                         Spacer(Modifier.height(4.dp))
                                     }
                                     Text(
@@ -896,7 +879,7 @@ fun WelcomeWizard(
                             Button(
                                 onClick = { step = 9 },
                                 Modifier.fillMaxWidth().height(52.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                                colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                             ) { Text("Continue", style = MaterialTheme.typography.titleMedium, color = Color.White) }
                         } else {
                             OutlinedButton(
@@ -913,7 +896,7 @@ fun WelcomeWizard(
                         Text(
                             "You're all set!",
                             style = MaterialTheme.typography.headlineMedium,
-                            color = DeskdropTeal,
+                            color = SenseKeyTeal,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -926,29 +909,12 @@ fun WelcomeWizard(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(Modifier.height(12.dp))
-                        AndroidView(
-                            factory = { ctx ->
-                                android.widget.VideoView(ctx).apply {
-                                    val uri = android.net.Uri.parse("android.resource://${ctx.packageName}/${R.raw.havefun_video}")
-                                    setVideoURI(uri)
-                                    setOnPreparedListener { mp ->
-                                        mp.isLooping = true
-                                        mp.setVolume(0f, 0f)
-                                        start()
-                                    }
-                                    setOnErrorListener { _, _, _ -> true }
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(9f / 16f)
-                                .clip(RoundedCornerShape(16.dp))
-                        )
+
                         Spacer(Modifier.height(16.dp))
                         Button(
                             onClick = { saveAiAndClose() },
                             modifier = Modifier.fillMaxWidth().height(52.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                         ) {
                             Text("Got it!", style = MaterialTheme.typography.titleMedium, color = Color.White)
                         }
@@ -958,7 +924,7 @@ fun WelcomeWizard(
                         Text(
                             "You're all set!",
                             style = MaterialTheme.typography.headlineMedium,
-                            color = DeskdropTeal,
+                            color = SenseKeyTeal,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -971,29 +937,12 @@ fun WelcomeWizard(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(Modifier.height(12.dp))
-                        AndroidView(
-                            factory = { ctx ->
-                                android.widget.VideoView(ctx).apply {
-                                    val uri = android.net.Uri.parse("android.resource://${ctx.packageName}/${R.raw.havefun_video}")
-                                    setVideoURI(uri)
-                                    setOnPreparedListener { mp ->
-                                        mp.isLooping = true
-                                        mp.setVolume(0f, 0f)
-                                        start()
-                                    }
-                                    setOnErrorListener { _, _, _ -> true }
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(9f / 16f)
-                                .clip(RoundedCornerShape(16.dp))
-                        )
+
                         Spacer(Modifier.height(16.dp))
                         Button(
                             onClick = { saveAiAndClose() },
                             modifier = Modifier.fillMaxWidth().height(52.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                         ) {
                             Text("Got it!", style = MaterialTheme.typography.titleMedium, color = Color.White)
                         }
@@ -1004,7 +953,7 @@ fun WelcomeWizard(
                         var showQuickGroqKeyDialog by rememberSaveable { mutableStateOf(false) }
                         var showQuickGuideVideo by rememberSaveable { mutableStateOf(false) }
 
-                        Text("Add AI to your keyboard", style = MaterialTheme.typography.titleLarge, color = DeskdropTeal)
+                        Text("Add AI to your keyboard", style = MaterialTheme.typography.titleLarge, color = SenseKeyTeal)
                         Spacer(Modifier.height(4.dp))
                         Text("Get a free Groq API key to enable AI features",
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
@@ -1016,11 +965,11 @@ fun WelcomeWizard(
                             OutlinedButton(
                                 onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://console.groq.com/keys"))) },
                                 modifier = Modifier.weight(1f)
-                            ) { Text("Get API key", color = DeskdropTeal) }
+                            ) { Text("Get API key", color = SenseKeyTeal) }
                             OutlinedButton(
                                 onClick = { showQuickGuideVideo = !showQuickGuideVideo },
                                 modifier = Modifier.weight(1f)
-                            ) { Text(if (showQuickGuideVideo) "\u25A0 Hide" else "\u25B6 Guide", color = DeskdropTeal) }
+                            ) { Text(if (showQuickGuideVideo) "Hide guide" else "Guide", color = SenseKeyTeal) }
                         }
                         if (showQuickGuideVideo) {
                             Spacer(Modifier.height(8.dp))
@@ -1028,23 +977,7 @@ fun WelcomeWizard(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                AndroidView(
-                                    factory = { ctx2 ->
-                                        android.widget.VideoView(ctx2).apply {
-                                            val mc = android.widget.MediaController(ctx2)
-                                            mc.setAnchorView(this)
-                                            setMediaController(mc)
-                                            val uri = android.net.Uri.parse("android.resource://${ctx.packageName}/${helium314.keyboard.latin.R.raw.onboarding_groq_guide_video}")
-                                            setVideoURI(uri)
-                                            setOnPreparedListener { mp ->
-                                                mp.isLooping = true
-                                                mp.setVolume(0f, 0f)
-                                                start()
-                                            }
-                                        }
-                                    },
-                                    modifier = Modifier.fillMaxWidth(0.85f).aspectRatio(886f / 1520f).clip(RoundedCornerShape(12.dp))
-                                )
+                                Text("Open the API key page, create a key, and paste it above.", style = MaterialTheme.typography.bodySmall)
                             }
                         }
 
@@ -1053,7 +986,7 @@ fun WelcomeWizard(
                             onClick = { step = 10 },
                             Modifier.fillMaxWidth().height(52.dp),
                             enabled = groqApiKey.isNotBlank(),
-                            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+                            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
                         ) { Text("Continue", style = MaterialTheme.typography.titleMedium, color = Color.White) }
                         Spacer(Modifier.height(8.dp))
                         OutlinedButton(
@@ -1208,29 +1141,12 @@ fun Step0(onClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(horizontal = 24.dp)
     ) {
-        AndroidView(
-            factory = { ctx ->
-                android.widget.VideoView(ctx).apply {
-                    val uri = android.net.Uri.parse("android.resource://${ctx.packageName}/${R.raw.onboarding_video}")
-                    setVideoURI(uri)
-                    setOnPreparedListener { mp ->
-                        mp.isLooping = true
-                        mp.setVolume(0f, 0f)
-                        start()
-                    }
-                    setOnErrorListener { _, _, _ -> true }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(886f / 1750f)
-                .clip(RoundedCornerShape(16.dp))
-        )
+        Image(painter = painterResource(R.mipmap.ic_launcher_foreground), contentDescription = "SenseKey", modifier = Modifier.size(120.dp))
         Spacer(Modifier.height(16.dp))
         Button(
             onClick = onClick,
             modifier = Modifier.fillMaxWidth().height(52.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = DeskdropTeal)
+            colors = ButtonDefaults.buttonColors(containerColor = SenseKeyTeal)
         ) {
             Text("Try it now!", style = MaterialTheme.typography.titleMedium, color = Color.White)
         }
@@ -1241,7 +1157,7 @@ fun Step0(onClick: () -> Unit) {
 private fun ModeCard(title: String, description: String, detail: String, hint: String? = null, selected: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth()
-            .background(if (selected) DeskdropTeal.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+            .background(if (selected) SenseKeyTeal.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
             .clickable { onClick() }.padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1255,7 +1171,7 @@ private fun ModeCard(title: String, description: String, detail: String, hint: S
             Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
             if (hint != null) {
                 Spacer(Modifier.height(4.dp))
-                Text(hint, style = MaterialTheme.typography.bodySmall, color = DeskdropTeal, fontWeight = FontWeight.Medium)
+                Text(hint, style = MaterialTheme.typography.bodySmall, color = SenseKeyTeal, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -1286,7 +1202,7 @@ private fun ToolbarHintIcon(iconRes: Int, name: String, description: String) {
 private fun SettingRow(label: String, value: String, isOptional: Boolean = false, onClick: () -> Unit) {
     val isEmpty = value.isBlank() || value == "(not set)" || value == "(select)"
     val highlight = isEmpty && !isOptional
-    val borderColor = if (highlight) DeskdropTeal else DeskdropTeal.copy(alpha = 0.4f)
+    val borderColor = if (highlight) SenseKeyTeal else SenseKeyTeal.copy(alpha = 0.4f)
     androidx.compose.material3.Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -1307,7 +1223,7 @@ private fun SettingRow(label: String, value: String, isOptional: Boolean = false
                 Text(
                     label,
                     style = MaterialTheme.typography.labelMedium,
-                    color = DeskdropTeal,
+                    color = SenseKeyTeal,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(2.dp))
@@ -1324,7 +1240,7 @@ private fun SettingRow(label: String, value: String, isOptional: Boolean = false
             Text(
                 "EDIT",
                 style = MaterialTheme.typography.labelMedium,
-                color = DeskdropTeal,
+                color = SenseKeyTeal,
                 fontWeight = FontWeight.Bold
             )
         }

@@ -2337,41 +2337,20 @@ public final class InputLogic {
     }
 
     private void showAiSetupMessage() {
-        String setupMsg = "\u2699\uFE0F No AI configured yet\n1. Get a free API key at console.groq.com/keys\n2. Paste it in Settings > AI > Essentials > Groq API Key\n\nTap Apply to watch the setup guide.";
+        String setupMsg = "Configure manual AI tools in Settings > AI. "
+                + "Phrase predictions have separate SenseKey settings.\nTap Apply to open settings.";
         mLatinIME.showAiPreview(setupMsg);
-        android.view.View panel = helium314.keyboard.keyboard.KeyboardSwitcher.getInstance().getAiPreviewPanel();
-        if (panel != null) {
-            android.widget.TextView tv = panel.findViewById(helium314.keyboard.latin.R.id.ai_preview_text);
-            if (tv != null) tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13);
-        }
         mLatinIME.setupAiPreviewButtons(
             () -> {
-                try {
-                    java.io.File videoDir = new java.io.File(mLatinIME.getCacheDir(), "video_temp");
-                    if (!videoDir.exists()) videoDir.mkdirs();
-                    java.io.File videoFile = new java.io.File(videoDir, "groq-guide.mp4");
-                    if (!videoFile.exists()) {
-                        java.io.InputStream is = mLatinIME.getResources().openRawResource(helium314.keyboard.latin.R.raw.groq_guide_video);
-                        java.io.FileOutputStream fos = new java.io.FileOutputStream(videoFile);
-                        byte[] buf = new byte[8192];
-                        int len;
-                        while ((len = is.read(buf)) != -1) fos.write(buf, 0, len);
-                        fos.close();
-                        is.close();
-                    }
-                    android.net.Uri contentUri = androidx.core.content.FileProvider.getUriForFile(
-                        mLatinIME, mLatinIME.getString(helium314.keyboard.latin.R.string.gesture_data_provider_authority), videoFile);
-                    android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
-                    intent.setDataAndType(contentUri, "video/mp4");
-                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    mLatinIME.startActivity(intent);
-                } catch (Exception e) { /* ignore */ }
+                android.content.Intent intent = new android.content.Intent(mLatinIME,
+                        helium314.keyboard.settings.SettingsActivity.class);
+                intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
+                mLatinIME.startActivity(intent);
                 mLatinIME.hideAiPreview();
             },
-            () -> { mLatinIME.hideAiPreview(); },
-            () -> { mLatinIME.hideAiPreview(); },
-            null,
-            setupMsg
+            () -> mLatinIME.hideAiPreview(),
+            () -> mLatinIME.hideAiPreview(),
+            null, setupMsg
         );
     }
 

@@ -11,6 +11,8 @@ public final class SenseContextCache {
         public final String packageName;
         public final String text;
         public final String screenText;
+        /** Current chat viewport without toolbar text when the layout is recognized. */
+        public final String visibleText;
         public final String conversationLabel;
         public final int screenCount;
         public final boolean historySupported;
@@ -29,6 +31,7 @@ public final class SenseContextCache {
             generation = sGeneration;
             screenText = screen == null ? "" : screen.text;
             historySupported = screen != null && screen.supportsHistory();
+            visibleText = historySupported ? screen.messages : screenText;
             conversationLabel = historySupported ? screen.conversationLabel : "";
             screenCount = historySupported ? sHistory.size() : (screenText.isEmpty() ? 0 : 1);
             text = historySupported ? sHistory.text() : screenText;

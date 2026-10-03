@@ -96,7 +96,7 @@ import kotlin.concurrent.thread
  * and launches [ConversationActivity] with the transcript pre-filled.
  *
  * Shows a floating stop button overlay when SYSTEM_ALERT_WINDOW is granted.
- * - Tap stop = transcribe + AI process + open in Deskdrop
+ * - Tap stop = transcribe + AI process + open in SenseKey
  * - Tap share = transcribe + AI process + Android share sheet
  * - Tap execute = transcribe + run MCP tools via floating popup
  * - Long-press any button = pick voice mode first
@@ -119,7 +119,7 @@ class VoiceRecordingService : Service() {
         val isRecording = AtomicBoolean(false)
     }
 
-    private enum class StopDestination { DESKDROP, SHARE, EXECUTE }
+    private enum class StopDestination { SENSEKEY, SHARE, EXECUTE }
 
     private var recorder: WhisperRecorder? = null
     private var speechRecognizer: SpeechRecognizer? = null
@@ -132,13 +132,13 @@ class VoiceRecordingService : Service() {
     private var overlayView: ComposeView? = null
     private var executeOverlayView: ComposeView? = null
     private var executeLifecycleOwner: ServiceLifecycleOwner? = null
-    private var pendingDestination: StopDestination = StopDestination.DESKDROP
+    private var pendingDestination: StopDestination = StopDestination.SENSEKEY
     private val mainHandler = Handler(Looper.getMainLooper())
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun promptOverlayPermission() {
-        Toast.makeText(this, "Allow \"Display over other apps\" for Deskdrop", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Allow \"Display over other apps\" for SenseKey", Toast.LENGTH_LONG).show()
         try {
             val intent = Intent(
                 AndroidSettings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -167,7 +167,7 @@ class VoiceRecordingService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
-                pendingDestination = StopDestination.DESKDROP
+                pendingDestination = StopDestination.SENSEKEY
                 startRecording()
             }
             ACTION_START_EXECUTE -> {
@@ -211,11 +211,11 @@ class VoiceRecordingService : Service() {
             ACTION_STOP_WITH_MODE -> {
                 val mode = intent.getIntExtra(EXTRA_VOICE_MODE, -1)
                 if (pendingTranscript != null) {
-                    processPendingTranscript(if (mode >= 0) mode else null, StopDestination.DESKDROP)
+                    processPendingTranscript(if (mode >= 0) mode else null, StopDestination.SENSEKEY)
                 } else if (speechRecognizer != null) {
                     speechRecognizer?.stopListening()
                 } else {
-                    stopRecordingAndTranscribe(if (mode >= 0) mode else null, StopDestination.DESKDROP)
+                    stopRecordingAndTranscribe(if (mode >= 0) mode else null, StopDestination.SENSEKEY)
                 }
             }
             else -> stopSelf()
@@ -306,7 +306,7 @@ class VoiceRecordingService : Service() {
             } else {
                 startForeground(NOTIFICATION_ID, dummyNotification)
             }
-            openAppSettings("Allow microphone permission for Deskdrop")
+            openAppSettings("Allow microphone permission for SenseKey")
             stopSelf()
             return
         }
@@ -471,7 +471,7 @@ class VoiceRecordingService : Service() {
                 }
 
                 when (destination) {
-                    StopDestination.DESKDROP -> {
+                    StopDestination.SENSEKEY -> {
                         val chatIntent = Intent(svc, ConversationActivity::class.java).apply {
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             putExtra(ConversationActivity.EXTRA_PREFILL_TEXT, finalText)
@@ -947,7 +947,7 @@ class VoiceRecordingService : Service() {
 
     private fun showExecuteOverlay(transcript: String) {
         if (!AndroidSettings.canDrawOverlays(this)) {
-            // Fallback: open in Deskdrop
+            // Fallback: open in SenseKey
             val chatIntent = Intent(this, ConversationActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 putExtra(ConversationActivity.EXTRA_PREFILL_TEXT, transcript)
@@ -1133,7 +1133,7 @@ class VoiceRecordingService : Service() {
                                                 }
                                                 if (Build.VERSION.SDK_INT >= 23 &&
                                                     service.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                                                    service.openAppSettings("Allow microphone permission for Deskdrop")
+                                                    service.openAppSettings("Allow microphone permission for SenseKey")
                                                     return@clickable
                                                 }
                                                 val sr = SpeechRecognizer.createSpeechRecognizer(service)
@@ -1423,7 +1423,7 @@ class VoiceRecordingService : Service() {
             fun toggleVoice(onResult: (String) -> Unit) {
                 if (Build.VERSION.SDK_INT >= 23 &&
                     service.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                    service.openAppSettings("Allow microphone permission for Deskdrop")
+                    service.openAppSettings("Allow microphone permission for SenseKey")
                     return
                 }
                 if (voiceEngine == "whisper") {

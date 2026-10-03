@@ -104,9 +104,28 @@ class SenseContextCacheTest {
         val current = SenseContextCache.getSnapshot()
         assertEquals(first, original.text)
         assertEquals("Toolbar\n$first\n$second", current.screenText)
+        assertEquals("$first\n$second", current.visibleText)
         assertEquals("$first\n$second", current.text)
         assertEquals("Test contact", current.conversationLabel)
         assertTrue(current.historySupported)
+    }
+
+    @Test fun scrollingWithinStoredHistoryChangesCurrentViewportAndInvalidatesPrediction() {
+        val earlier = "Earlier message with enough text for reliable overlap."
+        val current = "Current question with enough text for reliable overlap."
+        SenseContextCache.update("com.whatsapp", 1, chat("$earlier\n$current"))
+        val before = SenseContextCache.getSnapshot()
+        val request = helium314.keyboard.latin.completion.SenseCompletionRequest(
+            1, 7, "com.whatsapp", 3, "Да,", before, "ru")
+        SenseContextCache.update("com.whatsapp", 1, chat(current))
+        val after = SenseContextCache.getSnapshot()
+        assertEquals(before.text, after.text)
+        assertEquals(before.generation, after.generation)
+        assertEquals(current, after.visibleText)
+        assertFalse(request.matchesContext(after))
+        val fresh = helium314.keyboard.latin.completion.SenseCompletionRequest(
+            1, 7, "com.whatsapp", 3, "Да,", after, "ru")
+        assertTrue(fresh.payloadContext.endsWith("CURRENTLY_VISIBLE:\n$current"))
     }
 
     @Test fun keyboardGeometryInvalidationRequiresReverificationButKeepsHistory() {

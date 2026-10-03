@@ -27,7 +27,7 @@ class SenseCompletionClientTest {
     private val postBody = AtomicReference("")
     private val authHeader = AtomicReference<String?>()
     private val status = AtomicInteger(200)
-    private val response = AtomicReference("""{"choices":[{"message":{"content":"буду завтра к 11."},"finish_reason":"stop"}]}""")
+    private val response = AtomicReference("""{"choices":[{"message":{"content":"{\"text\":\"Да, буду завтра к 11.\"}"},"finish_reason":"stop"}]}""")
     private val location = AtomicReference("")
     private var entered: CountDownLatch? = null
     private var release: CountDownLatch? = null
@@ -73,7 +73,8 @@ class SenseCompletionClientTest {
         val body = JSONObject(postBody.get())
         assertFalse(body.has("tools"))
         assertFalse(body.getBoolean("stream"))
-        assertEquals(48, body.getInt("max_tokens"))
+        assertEquals(256, body.getInt("max_tokens"))
+        assertEquals("json_object", body.getJSONObject("response_format").getString("type"))
         assertTrue(body.getBoolean("cache_prompt"))
         assertFalse(body.getJSONObject("chat_template_kwargs").getBoolean("enable_thinking"))
         val messages = body.getJSONArray("messages")
@@ -195,6 +196,16 @@ class SenseCompletionClientTest {
         assertEquals("ab", SenseCompletionClient.safeTail("😀ab", 3))
     }
 
+    @Test fun boundedContextReservesSpaceForCurrentScreenEvenAfterOlderFragments() {
+        val history = "Older captured message\n".repeat(500) + "Old congratulations"
+        val visible = "Can you help check the estimate?"
+        val packed = SenseCompletionClient.packContext(history, visible)
+        assertTrue(packed.length <= SenseCompletionClient.MAX_CONTEXT_CHARS)
+        assertTrue(packed.endsWith("CURRENTLY_VISIBLE:\n$visible"))
+        assertTrue(packed.contains("fragment order may be unknown"))
+        assertEquals(visible, SenseCompletionClient.packContext(visible, visible))
+    }
+
     @Test fun requestStagesAndDisplayedContextCountAgreeWithActualHttpPayload() {
         SenseContextCache.update("chat.test", 1, "Old material\n".repeat(500) + "Recent question")
         val request = request()
@@ -212,7 +223,7 @@ class SenseCompletionClientTest {
     }
 
     @Test fun emptyDraftGetsAReplyInTheKeyboardLanguageWithoutLeadingSpace() {
-        response.set("""{"choices":[{"message":{"content":"Скоро отвечу."},"finish_reason":"stop"}]}""")
+        response.set("""{"choices":[{"message":{"content":"{\"text\":\"Скоро отвечу.\"}"},"finish_reason":"stop"}]}""")
         val request = SenseCompletionRequest(1, 7, "chat.test", 0, "",
             SenseContextCache.getSnapshot(), "ru-RU")
         val result = SenseCompletionClient().complete(base, "chosen-model", request,
@@ -236,7 +247,7 @@ class SenseCompletionClientTest {
 
     @Test fun aCollageOfOldMessagesIsReportedAsEchoAndCannotBeInserted() {
         SenseContextCache.update("chat.test", 1, "Чай готов?\nУже давно готов!")
-        response.set("""{"choices":[{"message":{"content":"что чай готов уже давно готов."},"finish_reason":"stop"}]}""")
+        response.set("""{"choices":[{"message":{"content":"{\"text\":\"Я думаю, что чай готов уже давно готов.\"}"},"finish_reason":"stop"}]}""")
         val result = SenseCompletionClient().complete(base, "chosen-model", request("Я думаю,"),
             SenseCompletionClient.Cancellation())
         assertEquals(SenseCompletionClient.Error.ECHO, result.error)
@@ -245,19 +256,54 @@ class SenseCompletionClientTest {
     }
 
     @Test fun serverTimingsAreOptionalBoundedAndSeparateFromClientDuration() {
-        response.set("""{"choices":[{"message":{"content":"стоит обсудить."},"finish_reason":"stop"}],
+        response.set("""{"choices":[{"message":{"content":"{\"text\":\"Да, стоит обсудить.\"}"},"finish_reason":"stop"}],
             "timings":{"prompt_ms":123.4,"predicted_ms":456.7},"usage":{"completion_tokens":9}}""")
         val result = complete("chosen-model")
         assertEquals(123L, result.promptMillis)
         assertEquals(457L, result.generationMillis)
         assertEquals(9, result.generatedTokens)
         assertTrue(result.elapsedMillis >= 0)
-        response.set("""{"choices":[{"message":{"content":"стоит обсудить."}}],
+        response.set("""{"choices":[{"message":{"content":"{\"text\":\"Да, стоит обсудить.\"}"}}],
             "timings":{"prompt_ms":-1,"predicted_ms":1e99},"usage":{"completion_tokens":-4}}""")
         val malformed = complete("chosen-model")
         assertEquals(-1L, malformed.promptMillis)
         assertEquals(-1L, malformed.generationMillis)
         assertEquals(-1, malformed.generatedTokens)
+    }
+
+    @Test fun structuredPredictionCannotChangeTypedPrefixOrBecomeInsertedJson() {
+        for (raw in listOf("{\"text\":\"Нет, не смогу.\"}",
+            "{\"text\":\"да, приеду.\"}", "{\"text\":\"Да,\"}",
+            "{\"text\":\"\"}")) {
+            assertEquals("", SenseCompletionClient.parseCompletion(raw, "Да,"))
+        }
+        assertEquals(" приеду.", SenseCompletionClient.parseCompletion(
+            "{\"text\":\"Да, приеду.\"}", "Да,"))
+        assertEquals("приеду.", SenseCompletionClient.parseCompletion(
+            "{\"text\":\"Да, приеду.\"}", "Да, "))
+        for (raw in listOf("обычный текст", "{\"text\":3}",
+            "{\"text\":null}", "{\"text\":\"Да, приеду.\",\"extra\":true}")) {
+            response.set(JSONObject().put("choices", org.json.JSONArray().put(
+                JSONObject().put("message", JSONObject().put("content", raw)))).toString())
+            val result = complete("chosen-model")
+            assertEquals(SenseCompletionClient.Error.RESPONSE, result.error, raw)
+            assertEquals("", result.suffix)
+        }
+    }
+
+    @Test fun inventedDateIsReportedAndCannotBecomeInsertedText() {
+        response.set("""{"choices":[{"message":{"content":"{\"text\":\"Да, приеду послезавтра.\"}"},"finish_reason":"stop"}]}""")
+        val result = complete("chosen-model")
+        assertEquals(SenseCompletionClient.Error.UNSUPPORTED, result.error)
+        assertEquals("", result.suffix)
+        assertEquals(1, calls.get())
+    }
+
+    @Test fun noContextCannotProduceAFabricatedReplyOrNetworkRequest() {
+        SenseContextCache.update("chat.test", 1, "")
+        val result = complete("chosen-model")
+        assertEquals(SenseCompletionClient.Error.EMPTY, result.error)
+        assertEquals(0, calls.get())
     }
 
     @Test fun unexpectedPredictionFailureDoesNotEscapeAndNextRequestCanSucceed() {
