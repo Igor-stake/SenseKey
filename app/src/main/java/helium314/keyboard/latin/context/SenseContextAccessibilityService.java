@@ -24,14 +24,33 @@ import java.util.List;
  */
 public final class SenseContextAccessibilityService extends AccessibilityService {
     private static final long DEBOUNCE_MS = 120L;
+    private static volatile SenseContextAccessibilityService sConnectedService;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper());
     private final Runnable mRefreshRunnable = this::refreshContext;
     private boolean mRefreshScheduled;
+    private long mLastRequestedRefresh = -1000L;
+    private final Runnable mRequestedRefreshRunnable = () -> {
+        if (sConnectedService != this) return;
+        final long now = android.os.SystemClock.elapsedRealtime();
+        // Limit retries too when the active application exposes no readable window.
+        if (now - mLastRequestedRefresh < 1000L) return;
+        mLastRequestedRefresh = now;
+        scheduleRefresh();
+    };
+
+    /** Re-read an idle screen while the IME waits for/holds a prediction. No cached age renewal. */
+    public static void refreshIfNeeded(final String editorPackage) {
+        final SenseContextAccessibilityService service = sConnectedService;
+        if (service == null || SenseContextCache.getSnapshot().isRecentFor(editorPackage, 5000L)) return;
+        service.mHandler.removeCallbacks(service.mRequestedRefreshRunnable);
+        service.mHandler.post(service.mRequestedRefreshRunnable);
+    }
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
+        sConnectedService = this;
         SenseContextCache.setServiceConnected(true);
         final AccessibilityServiceInfo info = getServiceInfo();
         if (info != null) {
@@ -66,6 +85,7 @@ public final class SenseContextAccessibilityService extends AccessibilityService
 
     @Override
     public void onDestroy() {
+        if (sConnectedService == this) sConnectedService = null;
         cancelRefresh();
         SenseContextCache.setServiceConnected(false);
         super.onDestroy();
@@ -73,6 +93,7 @@ public final class SenseContextAccessibilityService extends AccessibilityService
 
     private void cancelRefresh() {
         mHandler.removeCallbacks(mRefreshRunnable);
+        mHandler.removeCallbacks(mRequestedRefreshRunnable);
         mRefreshScheduled = false;
     }
 

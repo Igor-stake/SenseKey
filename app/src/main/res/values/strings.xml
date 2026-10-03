@@ -1263,4 +1263,10 @@ New dictionary:
     <string name="sense_completion_response_error">Unexpected model response. Check that the server supports chat completions.</string>
     <string name="sense_completion_empty">No short continuation received. Try again.</string>
     <string name="sense_completion_retry">Retry</string>
+    <string name="sense_completion_home_description">Local model and swipe continuations</string>
+    <string name="sense_setup_enable">Enable SenseKey in Android</string>
+    <string name="sense_setup_enable_description">Open Android keyboard settings</string>
+    <string name="sense_setup_select">Select SenseKey as your keyboard</string>
+    <string name="sense_builds">SenseKey builds on GitHub</string>
+    <string name="sense_settings_back">Back</string>
 </resources>

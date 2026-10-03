@@ -520,4 +520,10 @@
     <string name="sense_completion_response_error">Неожиданный ответ модели. Проверь поддержку chat completions у сервера.</string>
     <string name="sense_completion_empty">Короткое продолжение не получено. Попробуй ещё раз.</string>
     <string name="sense_completion_retry">Повторить</string>
+    <string name="sense_completion_home_description">Локальная модель и продолжения по свайпу</string>
+    <string name="sense_setup_enable">Разрешить клавиатуру SenseKey</string>
+    <string name="sense_setup_enable_description">Открыть список клавиатур Android</string>
+    <string name="sense_setup_select">Выбрать SenseKey текущей клавиатурой</string>
+    <string name="sense_builds">Сборки SenseKey на GitHub</string>
+    <string name="sense_settings_back">Назад</string>
 </resources>

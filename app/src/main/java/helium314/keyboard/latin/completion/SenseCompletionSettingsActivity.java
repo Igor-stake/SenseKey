@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -14,6 +15,11 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -32,6 +38,8 @@ public final class SenseCompletionSettingsActivity extends Activity {
     @Override public void onCreate(final Bundle state) {
         super.onCreate(state);
         setTitle(R.string.sense_completion_settings);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         final SharedPreferences prefs = DeviceProtectedUtils.getSharedPreferences(this);
         final int padding = (int) (16 * getResources().getDisplayMetrics().density);
         final ScrollView scroll = new ScrollView(this);
@@ -39,13 +47,30 @@ public final class SenseCompletionSettingsActivity extends Activity {
         content.setOrientation(LinearLayout.VERTICAL);
         content.setPadding(padding, padding, padding, padding);
         scroll.addView(content);
+        ViewCompat.setOnApplyWindowInsetsListener(scroll, (view, insets) -> {
+            final Insets safe = insets.getInsets(WindowInsetsCompat.Type.systemBars()
+                    | WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.ime());
+            view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+            return WindowInsetsCompat.CONSUMED;
+        });
         setContentView(scroll);
+        ViewCompat.requestApplyInsets(scroll);
+
+        final Button back = new Button(this);
+        back.setText(R.string.sense_settings_back);
+        back.setOnClickListener(view -> finish());
+        content.addView(back);
+        final TextView heading = new TextView(this);
+        heading.setText(R.string.sense_completion_settings);
+        heading.setTextSize(22);
+        content.addView(heading);
 
         final TextView explanation = new TextView(this);
         explanation.setText(R.string.sense_completion_setup_description);
         explanation.setTextSize(16);
         content.addView(explanation);
         final Switch enabled = new Switch(this);
+        enabled.setId(R.id.sense_completion_enabled_switch);
         enabled.setText(R.string.sense_completion_enabled);
         enabled.setChecked(prefs.getBoolean(SenseCompletionClient.PREF_ENABLED, false));
         enabled.setPadding(0, padding, 0, padding);
@@ -55,7 +80,7 @@ public final class SenseCompletionSettingsActivity extends Activity {
         addressLabel.setText(R.string.sense_completion_address);
         content.addView(addressLabel);
         final EditText address = new EditText(this);
-        address.setId(android.view.View.generateViewId());
+        address.setId(R.id.sense_completion_address_input);
         address.setSingleLine(true);
         address.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
         address.setText(prefs.getString(SenseCompletionClient.PREF_BASE_URL,
@@ -67,7 +92,7 @@ public final class SenseCompletionSettingsActivity extends Activity {
         modelLabel.setText(R.string.sense_completion_model);
         content.addView(modelLabel);
         final EditText model = new EditText(this);
-        model.setId(android.view.View.generateViewId());
+        model.setId(R.id.sense_completion_model_input);
         model.setSingleLine(true);
         model.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         model.setHint(R.string.sense_completion_model_auto);
@@ -82,18 +107,27 @@ public final class SenseCompletionSettingsActivity extends Activity {
         check.setText(R.string.sense_completion_check);
         content.addView(check);
         check.setOnClickListener(view -> {
-            final String endpoint = address.getText().toString();
+            final String endpoint;
+            try { endpoint = SenseCompletionClient.normalizeBaseUrl(address.getText().toString()); }
+            catch (IOException e) {
+                address.setError(getString(R.string.sense_completion_address_error));
+                return;
+            }
             check.setEnabled(false);
             status.setText(R.string.sense_completion_checking);
             worker.execute(() -> {
                 String discovered = "";
+                int error = R.string.sense_completion_not_running;
                 try { discovered = new SenseCompletionClient().discoverModel(endpoint, cancellation); }
-                catch (Exception ignored) { /* Never include server text or private paths in errors. */ }
+                catch (java.net.SocketTimeoutException e) { error = R.string.sense_completion_timeout; }
+                catch (org.json.JSONException e) { error = R.string.sense_completion_response_error; }
+                catch (IOException ignored) { /* Never include server text or private paths in errors. */ }
                 final String result = discovered;
+                final int errorMessage = error;
                 handler.post(() -> {
                     if (destroyed) return;
                     check.setEnabled(true);
-                    status.setText(result.isEmpty() ? getString(R.string.sense_completion_not_running)
+                    status.setText(result.isEmpty() ? getString(errorMessage)
                             : getString(R.string.sense_completion_model_found, result));
                 });
             });

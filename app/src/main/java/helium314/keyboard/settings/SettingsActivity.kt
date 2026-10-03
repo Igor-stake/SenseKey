@@ -6,7 +6,6 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Column
@@ -20,9 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
@@ -37,22 +33,11 @@ import helium314.keyboard.latin.settings.Settings
 import helium314.keyboard.latin.utils.BackButton
 import helium314.keyboard.latin.utils.DeviceProtectedUtils
 import helium314.keyboard.latin.utils.ExecutorUtils
-import helium314.keyboard.latin.utils.JniUtils
-import helium314.keyboard.latin.utils.GestureDataPromotionReminderDialog
 import helium314.keyboard.latin.utils.Theme
-import helium314.keyboard.latin.utils.UncachedInputMethodManagerUtils
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import helium314.keyboard.latin.utils.cleanUnusedMainDicts
 import helium314.keyboard.latin.utils.prefs
 import helium314.keyboard.settings.dialogs.ConfirmationDialog
 import helium314.keyboard.settings.dialogs.NewDictionaryDialog
-import helium314.keyboard.settings.screens.gesturedata.END_DATE_EPOCH_MILLIS
-import helium314.keyboard.settings.screens.gesturedata.TWO_WEEKS_IN_MILLIS
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.BufferedOutputStream
 import java.io.File
@@ -75,27 +60,6 @@ open class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPre
     private val crashReportFiles = MutableStateFlow<List<File>>(emptyList())
     private var paused = true
 
-    private val notificationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            prefs.edit().putBoolean("notification_permission_asked", true).apply()
-        } else {
-            prefs.edit().putBoolean("notification_permission_asked", true).apply()
-        }
-    }
-
-    private fun requestNotificationPermissionOnce() {
-        if (Build.VERSION.SDK_INT < 33) return
-        if (prefs.getBoolean("notification_permission_asked", false)) return
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-            == PackageManager.PERMISSION_GRANTED) {
-            prefs.edit().putBoolean("notification_permission_asked", true).apply()
-            return
-        }
-        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-    }
-
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -105,8 +69,6 @@ open class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPre
         }
         ExecutorUtils.getBackgroundExecutor(ExecutorUtils.KEYBOARD).execute { cleanUnusedMainDicts(this) }
         crashReportFiles.value = findCrashReports(!BuildConfig.DEBUG && !DebugFlags.DEBUG_ENABLED)
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-
         settingsContainer = SettingsContainer(this)
 
         val spellchecker = intent?.getBooleanExtra("spellchecker", false) ?: false
@@ -119,13 +81,6 @@ open class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPre
                     val dictUri by dictUriFlow.collectAsState()
                     val crashReports by crashReportFiles.collectAsState()
                     val crashFilePicker = filePicker { saveCrashReports(it) }
-                    val imeEnabled = UncachedInputMethodManagerUtils.isThisImeEnabled(this, imm)
-                    val imeCurrent = UncachedInputMethodManagerUtils.isThisImeCurrent(this, imm)
-                    val setupV2 = prefs.getBoolean(Settings.PREF_DESKDROP_SETUP_V2, false)
-                    Log.d("SettingsActivity", "Wizard check: imeEnabled=$imeEnabled, imeCurrent=$imeCurrent, setupV2=$setupV2, aiModel=${prefs.getString(Settings.PREF_AI_MODEL, "")}")
-                    var showWelcomeWizard by rememberSaveable { mutableStateOf(
-                        !imeCurrent || !imeEnabled || !setupV2
-                    ) }
                     if (spellchecker)
                         Scaffold(contentWindowInsets = WindowInsets.safeDrawing) { innerPadding ->
                             Column(Modifier.padding(innerPadding)) {
@@ -143,19 +98,9 @@ open class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPre
                         }
                     else {
                         SettingsNavHost(onClickBack = { this.finish() })
-                        if (setupV2) requestNotificationPermissionOnce()
-                        val lastSeenVersion = prefs.getString("whats_new_seen_version", "")
-                        var showWhatsNew by rememberSaveable { mutableStateOf(
-                            lastSeenVersion != WHATS_NEW_VERSION && setupV2
-                        ) }
-                        if (showWelcomeWizard) {
-                            WelcomeWizard(close = { showWelcomeWizard = false }, finish = this::finish)
-                        } else if (showWhatsNew) {
-                            WhatsNewDialog(onDismiss = {
-                                showWhatsNew = false
-                                prefs.edit().putString("whats_new_seen_version", WHATS_NEW_VERSION).apply()
-                            })
-                        } else if (crashReports.isNotEmpty()) {
+                        // Settings must remain reachable even before Android enables the IME.
+                        // SenseKey uses inline setup actions instead of the old video wizard.
+                        if (crashReports.isNotEmpty()) {
                             ConfirmationDialog(
                                 cancelButtonText = "ignore",
                                 onDismissRequest = { crashReportFiles.value = emptyList() },
@@ -171,8 +116,6 @@ open class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPre
                                 },
                                 content = { Text("Crash report files found") },
                             )
-                        } else if (JniUtils.sHaveGestureLib && System.currentTimeMillis() < END_DATE_EPOCH_MILLIS + TWO_WEEKS_IN_MILLIS) {
-                            GestureDataPromotionReminderDialog()
                         }
                     }
                     if (dictUri != null) {
@@ -217,6 +160,7 @@ open class SettingsActivity : ComponentActivity(), SharedPreferences.OnSharedPre
     override fun onResume() {
         super.onResume()
         paused = false
+        prefChanged() // Recheck Android keyboard selection after returning from system settings.
     }
 
     fun setForceTheme(theme: String?, night: Boolean?) {

@@ -194,9 +194,11 @@ public class LatinIME extends InputMethodService implements
                 hideSensePrototypeCompletion();
                 return;
             }
-            // Poll only the in-process cache. Re-reading InputConnection every tick
-            // would add unnecessary cross-process calls while the user is idle.
+            // Poll the cache; request a fresh accessibility capture only after five idle seconds.
+            // Do not renew cached timestamps or read InputConnection on every tick.
             if (mSenseLlmMode) {
+                helium314.keyboard.latin.context.SenseContextAccessibilityService
+                        .refreshIfNeeded(editor.packageName);
                 final SenseContextCache.Snapshot snapshot = SenseContextCache.getSnapshot();
                 if ((mSenseCompletionRequest != null && !mSenseCompletionRequest.matchesContext(snapshot))
                         || (mSenseCompletionRequest == null
@@ -2376,6 +2378,8 @@ public class LatinIME extends InputMethodService implements
                 return;
             }
         } catch (Exception e) { hideSensePrototypeCompletion(); return; }
+        helium314.keyboard.latin.context.SenseContextAccessibilityService
+                .refreshIfNeeded(editor.packageName);
         final SenseContextCache.Snapshot snapshot = SenseContextCache.getSnapshot();
         final String address = prefs.getString(SenseCompletionClient.PREF_BASE_URL,
                 SenseCompletionClient.DEFAULT_BASE_URL);

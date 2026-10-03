@@ -15,14 +15,14 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * Checks GitHub Releases for a newer version of Deskdrop and shows a notification.
+ * Checks GitHub Releases for a newer version of SenseKey and shows a notification.
  * Users can tap "Update" to download, "Later" to be reminded tomorrow,
  * or "Skip" to permanently ignore that version.
  */
 object UpdateChecker {
 
     private const val TAG = "UpdateChecker"
-    private const val REPO = "SvReenen/Deskdrop"
+    private const val REPO = "Igor-stake/SenseKey"
     private const val API_URL = "https://api.github.com/repos/$REPO/releases/latest"
     private const val CHANNEL_ID = "deskdrop_update"
     private const val NOTIFICATION_ID = 9001
@@ -172,7 +172,7 @@ object UpdateChecker {
                 "App updates",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Notifications when a new Deskdrop version is available"
+                description = "Notifications when a new SenseKey version is available"
             }
             nm.createNotificationChannel(channel)
         }
@@ -205,7 +205,7 @@ object UpdateChecker {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notif_reminder)
-            .setContentTitle("Deskdrop $version available")
+            .setContentTitle("SenseKey $version available")
             .setContentText("Tap to download the update")
             .setContentIntent(updatePending)
             .setAutoCancel(true)

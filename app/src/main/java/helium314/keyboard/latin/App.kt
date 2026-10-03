@@ -54,7 +54,7 @@ class App : Application() {
                 }
             }
 
-        helium314.keyboard.latin.ai.UpdateChecker.checkInBackground(this)
+        // Pre-alpha APKs are published in SenseKey Actions, not upstream releases.
 
         val packageInfo = packageManager.getPackageInfo(packageName, 0)
         @Suppress("DEPRECATION")
