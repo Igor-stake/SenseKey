@@ -4,6 +4,7 @@ package helium314.keyboard.latin.context
 import android.app.Application
 import android.os.Looper
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import helium314.keyboard.latin.completion.SenseCompletionRequest
 import org.junit.After
 import org.junit.Before
@@ -15,6 +16,8 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
+import org.robolectric.shadow.api.Shadow
+import org.robolectric.shadows.ShadowAccessibilityService
 import org.robolectric.shadows.ShadowSystemClock
 import org.robolectric.util.ReflectionHelpers
 import java.time.Duration
@@ -36,7 +39,11 @@ class SenseContextRefreshTest {
         `when`(root.windowId).thenReturn(1)
         `when`(root.isVisibleToUser).thenReturn(true)
         `when`(root.text).thenReturn("A visible question.")
-        shadowOf(service).setRootInActiveWindow(root)
+        val window = mock(AccessibilityWindowInfo::class.java)
+        `when`(window.type).thenReturn(AccessibilityWindowInfo.TYPE_APPLICATION)
+        `when`(window.isFocused).thenReturn(true)
+        `when`(window.root).thenReturn(root)
+        Shadow.extract<ShadowAccessibilityService>(service).setWindows(listOf(window))
         ReflectionHelpers.callInstanceMethod<Any?>(service, "onServiceConnected")
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(150))
         assertEquals("A visible question.", SenseContextCache.getSnapshot().text)
