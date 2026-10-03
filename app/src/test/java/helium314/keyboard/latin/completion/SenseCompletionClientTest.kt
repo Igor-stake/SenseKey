@@ -207,6 +207,7 @@ class SenseCompletionClientTest {
     }
 
     @Test fun requestStagesAndDisplayedContextCountAgreeWithActualHttpPayload() {
+        response.set("""{"choices":[{"message":{"content":"{\"text\":\"Да, готов обсудить.\"}"},"finish_reason":"stop"}]}""")
         SenseContextCache.update("chat.test", 1, "Old material\n".repeat(500) + "Recent question")
         val request = request()
         val stages = mutableListOf<SenseCompletionClient.Stage>()
