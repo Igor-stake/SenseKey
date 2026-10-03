@@ -1189,6 +1189,18 @@ public class LatinIME extends InputMethodService implements
                 currentSettingsValues.mGestureTrailEnabled,
                 currentSettingsValues.mGestureFloatingPreviewTextEnabled);
 
+        // Reserve the panel before the first draw, independently of the debounce/request trigger.
+        if (!isImeSuppressedByHardwareKeyboard() && hasSuggestionStripView()
+                && fallbackPrefs.getBoolean(SenseCompletionClient.PREF_ENABLED, false)
+                && !getPackageName().equals(editorInfo.packageName)
+                && !currentSettingsValues.mInputAttributes.mIsPasswordField
+                && !currentSettingsValues.mIncognitoModeEnabled
+                && (editorInfo.inputType & android.text.InputType.TYPE_MASK_CLASS)
+                == android.text.InputType.TYPE_CLASS_TEXT) {
+            ensureSenseLlmPanel();
+            scheduleSensePrototypeRefresh();
+        }
+
         if (TRACE) Debug.startMethodTracing("/data/trace/latinime");
     }
 
@@ -2591,7 +2603,12 @@ public class LatinIME extends InputMethodService implements
             cancelSenseCompletion();
             mSenseDismissedForTrigger = false;
             maybeShowSensePrototypeCompletion();
-        }, this::dismissSenseContextPanel);
+        }, this::dismissSenseContextPanel, () -> {
+            final Intent settings = new Intent(this,
+                    helium314.keyboard.latin.completion.SenseCompletionSettingsActivity.class);
+            settings.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(settings);
+        });
         mSenseCompletionStatus = mSenseCompletionPanel.status;
         mSenseCompletionContextInfo = mSenseCompletionPanel.contextInfo;
         mSenseCompletionText = mSenseCompletionPanel.suffix;

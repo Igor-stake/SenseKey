@@ -2,11 +2,13 @@
 package helium314.keyboard.latin.completion;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -28,6 +30,11 @@ public final class SenseCompletionPanel extends LinearLayout {
 
     public SenseCompletionPanel(final Context context, final int textColor,
             final Runnable onRetry, final Runnable onCancel) {
+        this(context, textColor, onRetry, onCancel, null);
+    }
+
+    public SenseCompletionPanel(final Context context, final int textColor,
+            final Runnable onRetry, final Runnable onCancel, final Runnable onSettings) {
         super(context);
         color = textColor;
         setOrientation(VERTICAL);
@@ -43,6 +50,15 @@ public final class SenseCompletionPanel extends LinearLayout {
         retry.setVisibility(INVISIBLE);
         header.addView(retry);
         header.addView(action(R.string.sense_completion_cancel, onCancel));
+        if (onSettings != null) {
+            final ImageButton settings = new ImageButton(context);
+            settings.setImageResource(R.drawable.ic_settings_default);
+            settings.setImageTintList(ColorStateList.valueOf(color));
+            settings.setBackgroundResource(android.R.drawable.list_selector_background);
+            settings.setContentDescription(context.getString(R.string.sense_completion_settings));
+            settings.setOnClickListener(ignored -> onSettings.run());
+            header.addView(settings, new LayoutParams(dp(40), LayoutParams.MATCH_PARENT));
+        }
         addView(header, new LayoutParams(LayoutParams.MATCH_PARENT, dp(40)));
         contextInfo = label(11);
         contextInfo.setMaxLines(1);

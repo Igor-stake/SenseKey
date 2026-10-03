@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.CompletionInfo
 import android.widget.TextView
+import android.widget.ImageButton
 import helium314.keyboard.latin.SuggestedWords
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -66,5 +67,16 @@ class SenseCompletionPanelTest {
         assertSame(info, picked)
         panel.showContinuation()
         assertEquals(View.GONE, (word.parent as View).visibility)
+    }
+
+    @Test fun settingsButtonInvokesTheDedicatedSettingsAction() {
+        val context = RuntimeEnvironment.getApplication()
+        var opened = false
+        val panel = SenseCompletionPanel(context, Color.BLACK, {}, {}, { opened = true })
+        val header = panel.getChildAt(0) as ViewGroup
+        val settings = (0 until header.childCount).map { header.getChildAt(it) }.filterIsInstance<ImageButton>().single()
+        assertTrue(settings.contentDescription.isNotEmpty())
+        assertTrue(settings.performClick())
+        assertTrue(opened)
     }
 }
