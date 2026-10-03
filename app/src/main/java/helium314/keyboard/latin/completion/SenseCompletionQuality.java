@@ -9,7 +9,9 @@ import java.util.regex.Pattern;
 
 /** Reject clear copies, not a semantic relevance score or a substitute for a trained model. */
 public final class SenseCompletionQuality {
-    private static final Pattern WORD = Pattern.compile("[\\p{L}\\p{N}]+", Pattern.UNICODE_CHARACTER_CLASS);
+    // Explicit Unicode categories already work on Android. UNICODE_CHARACTER_CLASS is
+    // accepted by the host JDK but throws on Android 15+, breaking class initialization.
+    private static final Pattern WORD = Pattern.compile("[\\p{L}\\p{N}]+");
 
     private SenseCompletionQuality() {}
 

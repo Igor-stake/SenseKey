@@ -1266,6 +1266,7 @@ New dictionary:
     <string name="sense_completion_deadline">No continuation after 25 seconds. Tap Retry.</string>
     <string name="sense_completion_server_error">The local server rejected the request. Check the model and its context size.</string>
     <string name="sense_completion_response_error">Unexpected model response. Check that the server supports chat completions.</string>
+    <string name="sense_completion_internal_error">Suggestion processing failed. You can keep typing.</string>
     <string name="sense_completion_empty">The model replied without a useful short continuation.</string>
     <string name="sense_completion_retry">Retry</string>
     <string name="sense_completion_cancel">Cancel</string>

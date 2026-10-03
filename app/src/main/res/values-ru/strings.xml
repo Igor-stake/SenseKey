@@ -523,6 +523,7 @@
     <string name="sense_completion_deadline">Продолжение не готово за 25 секунд. Нажми «Повторить».</string>
     <string name="sense_completion_server_error">Локальный сервер отклонил запрос. Проверь модель и размер её контекста.</string>
     <string name="sense_completion_response_error">Неожиданный ответ модели. Проверь поддержку chat completions у сервера.</string>
+    <string name="sense_completion_internal_error">Ошибка обработки подсказки. Можно продолжать печатать.</string>
     <string name="sense_completion_empty">Модель ответила, но полезного короткого продолжения нет.</string>
     <string name="sense_completion_retry">Повторить</string>
     <string name="sense_completion_cancel">Отмена</string>

@@ -45,7 +45,7 @@ public final class SenseCompletionClient {
         return thread;
     });
 
-    public enum Error { NONE, CANCELLED, ADDRESS, NETWORK, TIMEOUT, SERVER, RESPONSE, EMPTY, ECHO }
+    public enum Error { NONE, CANCELLED, ADDRESS, NETWORK, TIMEOUT, SERVER, RESPONSE, EMPTY, ECHO, INTERNAL }
     public enum Stage { CONNECTING, WAITING_FOR_MODEL }
     public interface Progress { void onStage(Stage stage); }
 
@@ -173,6 +173,14 @@ public final class SenseCompletionClient {
             return new Result("", model, cancellation.isCancelled() ? Error.CANCELLED : Error.RESPONSE, start);
         } catch (IOException e) {
             return new Result("", model, cancellation.isCancelled() ? Error.CANCELLED : Error.NETWORK, start);
+        } catch (RuntimeException | LinkageError e) {
+            // An optional prediction must not terminate the input method. In particular,
+            // failed static initialization throws LinkageError, not RuntimeException.
+            // Log only the type and source location, never exception messages or chat data.
+            final StackTraceElement[] trace = e.getStackTrace();
+            android.util.Log.e("SenseKey-completion", "Completion failed: " + e.getClass().getName()
+                    + (trace.length == 0 ? "" : " at " + trace[0]));
+            return new Result("", model, cancellation.isCancelled() ? Error.CANCELLED : Error.INTERNAL, start);
         }
     }
 

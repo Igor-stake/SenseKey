@@ -35,4 +35,12 @@ class SenseCompletionQualityTest {
             "Что случилось?\nПосле дождя.\nОб этом ещё не говорили.\nМного работы."))
         assertFalse(SenseCompletionQuality.copiesHistory("", "Текст"))
     }
+
+    @Test fun unicodeWordsNumbersAndSupplementaryLettersStillDetectCopies() {
+        assertTrue(SenseCompletionQuality.copiesHistory("ЗАВТРА встретимся ровно в 11:30!",
+            "Завтра встретимся ровно в 11:30."))
+        assertTrue(SenseCompletionQuality.copiesHistory("𐐨𐐩 𐐪𐐫 𐐬𐐭 𐐮𐐯", "𐐨𐐩 𐐪𐐫 𐐬𐐭 𐐮𐐯"))
+        assertFalse(SenseCompletionQuality.copiesHistory("что это стоит обсудить лично.",
+            "Когда встретимся?"))
+    }
 }

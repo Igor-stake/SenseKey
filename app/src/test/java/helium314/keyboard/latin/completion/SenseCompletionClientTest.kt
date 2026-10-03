@@ -259,4 +259,31 @@ class SenseCompletionClientTest {
         assertEquals(-1L, malformed.generationMillis)
         assertEquals(-1, malformed.generatedTokens)
     }
+
+    @Test fun unexpectedPredictionFailureDoesNotEscapeAndNextRequestCanSucceed() {
+        val result = SenseCompletionClient().complete(base, "chosen-model", request("Я думаю,"),
+            SenseCompletionClient.Cancellation()) { throw IllegalStateException("private details") }
+        assertEquals(SenseCompletionClient.Error.INTERNAL, result.error)
+        assertEquals("", result.suffix)
+        assertEquals(0, calls.get())
+        assertEquals(SenseCompletionClient.Error.NONE, complete("chosen-model").error)
+    }
+
+    @Test fun androidStyleClassInitializationFailureDoesNotTerminatePredictionWorker() {
+        val caller = Executors.newSingleThreadExecutor()
+        try {
+            val result = caller.submit<SenseCompletionClient.Result> {
+                SenseCompletionClient().complete(base, "chosen-model", request("Я думаю,"),
+                    SenseCompletionClient.Cancellation()) {
+                    throw ExceptionInInitializerError(IllegalArgumentException("private details"))
+                }
+            }.get(5, TimeUnit.SECONDS)
+            assertEquals(SenseCompletionClient.Error.INTERNAL, result.error)
+            assertEquals("", result.suffix)
+            assertEquals(0, calls.get())
+            assertEquals(SenseCompletionClient.Error.NONE,
+                caller.submit<SenseCompletionClient.Result> { complete("chosen-model") }
+                    .get(5, TimeUnit.SECONDS).error)
+        } finally { caller.shutdownNow() }
+    }
 }

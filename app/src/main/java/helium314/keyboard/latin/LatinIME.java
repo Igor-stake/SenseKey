@@ -2566,6 +2566,7 @@ public class LatinIME extends InputMethodService implements
             case TIMEOUT: return R.string.sense_completion_timeout;
             case SERVER: return R.string.sense_completion_server_error;
             case RESPONSE: return R.string.sense_completion_response_error;
+            case INTERNAL: return R.string.sense_completion_internal_error;
             case EMPTY: return R.string.sense_completion_empty;
             case ECHO: return R.string.sense_completion_echo;
             default: return R.string.sense_completion_not_running;
