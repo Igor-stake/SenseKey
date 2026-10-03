@@ -146,6 +146,15 @@ fun AISettingsScreen(onClickBack: () -> Unit, onClickModelWizard: () -> Unit = {
         settings = emptyList(),
         content = {
             Column(Modifier.imePadding()) {
+                OutlinedButton(
+                    onClick = {
+                        ctx.startActivity(Intent(ctx,
+                            helium314.keyboard.latin.completion.SenseCompletionSettingsActivity::class.java))
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                ) {
+                    Text(stringResource(R.string.sense_completion_settings))
+                }
                 TabRow(
                     selectedTabIndex = selectedTab,
                     containerColor = MaterialTheme.colorScheme.surface,

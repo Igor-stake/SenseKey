@@ -220,6 +220,8 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
     private var suggestedWords = SuggestedWords.getEmptyInstance()
     private var startIndexOfMoreSuggestions = 0
     private var isExternalSuggestionVisible = false // Required to disable the more suggestions if other suggestions are visible
+    private var senseDebugView: View? = null
+    private var toolbarVisibleBeforeSenseDebug = false
     private val layoutHelper = SuggestionStripLayoutHelper(context, attrs, defStyle, wordViews, dividerViews, debugInfoViews)
     private val moreSuggestionsView = moreSuggestionsContainer.findViewById<MoreSuggestionsView>(R.id.more_suggestions_view).apply {
         val slidingListener = object : SimpleOnGestureListener() {
@@ -297,6 +299,13 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
     }
 
     fun setToolbarVisibility(toolbarVisible: Boolean) {
+        if (senseDebugView != null) {
+            toolbarExpandKey.visibility = GONE
+            pinnedKeys.visibility = GONE
+            toolbarContainer.visibility = GONE
+            suggestionsStrip.visibility = VISIBLE
+            return
+        }
         // avoid showing toolbar keys when locked
         val locked = isDeviceLocked(context)
         pinnedKeys.isVisible = !locked && !toolbarVisible
@@ -313,6 +322,12 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
     }
 
     fun setSuggestions(suggestions: SuggestedWords, isRtlLanguage: Boolean) {
+        // Dictionary callbacks can arrive after the diagnostic panel was shown.
+        // Keep their data, but do not replace the panel or its touch targets.
+        if (senseDebugView != null) {
+            suggestedWords = suggestions
+            return
+        }
         clear()
         setRtl(isRtlLanguage)
         suggestedWords = suggestions
@@ -327,31 +342,39 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
      * Pre-alpha helper: let SenseKey use the whole suggestion strip for a multi-line
      * context diagnostic instead of sharing the row with toolbar/pinned buttons.
      */
-    fun setSenseDebugMode(enabled: Boolean) {
-        if (enabled) {
-            toolbarExpandKey.visibility = GONE
-            pinnedKeys.visibility = GONE
-            toolbarContainer.visibility = GONE
-            suggestionsStrip.visibility = VISIBLE
-            val lp = suggestionsStrip.layoutParams
-            if (lp is LinearLayout.LayoutParams) {
-                lp.width = 0
-                lp.weight = 1f
-                suggestionsStrip.layoutParams = lp
-            }
-        } else {
-            toolbarExpandKey.visibility = VISIBLE
-            val lp = suggestionsStrip.layoutParams
-            if (lp is LinearLayout.LayoutParams) {
-                lp.width = LinearLayout.LayoutParams.WRAP_CONTENT
-                lp.weight = 1f
-                suggestionsStrip.layoutParams = lp
-            }
-            setToolbarVisibility(false)
+    fun showSenseDebugView(view: View) {
+        if (senseDebugView == null) toolbarVisibleBeforeSenseDebug = toolbarContainer.isVisible
+        senseDebugView = view
+        dismissMoreSuggestionsPanel()
+        clear()
+        isExternalSuggestionVisible = true
+        val lp = suggestionsStrip.layoutParams
+        if (lp is LinearLayout.LayoutParams) {
+            lp.width = 0
+            lp.weight = 1f
+            suggestionsStrip.layoutParams = lp
         }
+        suggestionsStrip.addView(view)
+        setToolbarVisibility(false)
+    }
+
+    fun clearSenseDebugView() {
+        if (senseDebugView == null) return
+        senseDebugView = null
+        clear()
+        isExternalSuggestionVisible = false
+        toolbarExpandKey.visibility = VISIBLE
+        val lp = suggestionsStrip.layoutParams
+        if (lp is LinearLayout.LayoutParams) {
+            lp.width = LinearLayout.LayoutParams.WRAP_CONTENT
+            lp.weight = 1f
+            suggestionsStrip.layoutParams = lp
+        }
+        setToolbarVisibility(toolbarVisibleBeforeSenseDebug)
     }
 
     fun setExternalSuggestionView(view: View?, addCloseButton: Boolean) {
+        if (senseDebugView != null) return
         clear()
         isExternalSuggestionVisible = true
 
@@ -415,6 +438,8 @@ class SuggestionStripView(context: Context, attrs: AttributeSet?, defStyle: Int)
     }
 
     override fun onInterceptTouchEvent(motionEvent: MotionEvent): Boolean {
+        // Let the diagnostic ScrollView handle vertical scrolling itself.
+        if (senseDebugView != null) return false
         // Detecting sliding up finger to show MoreSuggestionsView.
         return moreSuggestionsView.shouldInterceptTouchEvent(motionEvent)
     }

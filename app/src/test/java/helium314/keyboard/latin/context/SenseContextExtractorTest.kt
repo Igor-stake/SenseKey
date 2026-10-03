@@ -1,0 +1,149 @@
+// SPDX-License-Identifier: GPL-3.0-only
+package helium314.keyboard.latin.context
+
+import android.view.accessibility.AccessibilityNodeInfo
+import android.graphics.Rect
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.Mockito.*
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35], manifest = Config.NONE)
+class SenseContextExtractorTest {
+    private fun node(text: String? = null, visible: Boolean = true,
+            editable: Boolean = false, password: Boolean = false,
+            description: String? = null, children: List<AccessibilityNodeInfo> = emptyList()
+    ): AccessibilityNodeInfo = mock(AccessibilityNodeInfo::class.java).also {
+        `when`(it.text).thenReturn(text)
+        `when`(it.contentDescription).thenReturn(description)
+        `when`(it.isVisibleToUser).thenReturn(visible)
+        `when`(it.isEditable).thenReturn(editable)
+        `when`(it.isPassword).thenReturn(password)
+        `when`(it.childCount).thenReturn(children.size)
+        children.forEachIndexed { index, child -> `when`(it.getChild(index)).thenReturn(child) }
+    }
+
+    @Test fun hiddenTextIsExcludedButVisibleDescendantsCanBeRead() {
+        val root = node("Hidden history", visible = false,
+            children = listOf(node("Visible message"), node("Offscreen", visible = false)))
+        assertEquals("Visible message", SenseContextExtractor.extract(root))
+    }
+
+    @Test fun editableAndPasswordSubtreesAreExcluded() {
+        val draft = node("Draft", editable = true, children = listOf(node("Draft child")))
+        val password = node("Secret", password = true, children = listOf(node("Secret child")))
+        val root = node(children = listOf(draft, password, node("Incoming message")))
+        assertEquals("Incoming message", SenseContextExtractor.extract(root))
+        verify(draft, never()).getChild(anyInt())
+        verify(password, never()).getChild(anyInt())
+    }
+
+    @Test fun contentDescriptionIsUsedWhenVisibleTextIsMissing() {
+        assertEquals("Message from Alice", SenseContextExtractor.extract(
+            node(" ", description = "  Message  from Alice  ")))
+    }
+
+    @Test fun consecutiveDuplicatesAreCollapsedWithoutDroppingLaterReplies() {
+        val root = node(children = listOf(node("Yes"), node("Yes"), node("Question"), node("Yes")))
+        assertEquals("Yes\nQuestion\nYes", SenseContextExtractor.extract(root))
+    }
+
+    @Test fun messageContainingPipeCharactersIsPreserved() {
+        assertEquals("A | B", SenseContextExtractor.extract(node(" A | B ")))
+    }
+
+    @Test fun singleCharacterRepliesArePreserved() {
+        assertEquals("?", SenseContextExtractor.extract(node("?")))
+    }
+
+    @Test fun characterLimitDoesNotSplitEmojiSurrogatePairs() {
+        val text = "x".repeat(SenseContextExtractor.MAX_CHARS - 1) + "\uD83D\uDE00"
+        val output = SenseContextExtractor.extract(node(text))
+        assertTrue(output.length <= SenseContextExtractor.MAX_CHARS)
+        assertFalse(output.last().isHighSurrogate())
+        assertEquals(SenseContextExtractor.MAX_CHARS - 1, output.length)
+    }
+
+    @Test fun extremelyWideTreeCannotCreateAnUnboundedQueue() {
+        val root = node()
+        val child = node("Repeated label")
+        `when`(root.childCount).thenReturn(100_000)
+        `when`(root.getChild(anyInt())).thenReturn(child)
+        assertEquals("Repeated label", SenseContextExtractor.extract(root))
+        verify(root, times(SenseContextExtractor.MAX_NODES - 1)).getChild(anyInt())
+    }
+
+    private fun whatsapp(label: String? = "Test contact",
+            messages: List<AccessibilityNodeInfo> = listOf(node("Incoming message")),
+            secondList: Boolean = false): AccessibilityNodeInfo {
+        val title = node(label)
+        `when`(title.viewIdResourceName).thenReturn("com.whatsapp:id/conversation_contact_name")
+        val list = node(children = messages)
+        `when`(list.className).thenReturn("android.widget.ListView")
+        val children = mutableListOf(title, node("Video call"), list, node("Send"))
+        if (secondList) children += node(children = listOf(node("Other list"))).also {
+            `when`(it.className).thenReturn("androidx.recyclerview.widget.RecyclerView")
+        }
+        return node(children = children).also {
+            `when`(it.packageName).thenReturn("com.whatsapp")
+        }
+    }
+
+    private fun positioned(text: String, top: Int): AccessibilityNodeInfo = node(text).also { n ->
+        doAnswer {
+            (it.arguments[0] as Rect).set(10, top, 200, top + 40)
+            null
+        }.`when`(n).getBoundsInScreen(any(Rect::class.java))
+    }
+
+    @Test fun recognizedChatSeparatesMessagesFromToolbarAndDraft() {
+        val root = whatsapp(messages = listOf(node("Reply"), node("Draft", editable = true)))
+        val screen = SenseContextExtractor.extractScreen(root)
+        assertTrue(screen.supportsHistory())
+        assertEquals("Test contact", screen.conversationLabel)
+        assertEquals("Reply", screen.messages)
+        assertTrue(screen.text.contains("Video call"))
+        assertFalse(screen.messages.contains("Send"))
+    }
+
+    @Test fun unknownAppDoesNotGuessConversationIdentityFromText() {
+        val root = whatsapp()
+        `when`(root.packageName).thenReturn("another.chat")
+        val screen = SenseContextExtractor.extractScreen(root)
+        assertFalse(screen.supportsHistory())
+        assertTrue(screen.text.contains("Incoming message"))
+    }
+
+    @Test fun missingAndTruncatedHeadersKeepOnlyOneScreen() {
+        assertFalse(SenseContextExtractor.extractScreen(whatsapp(label = null)).supportsHistory())
+        assertFalse(SenseContextExtractor.extractScreen(whatsapp(label = "Contact…")).supportsHistory())
+    }
+
+    @Test fun twoMessageListsAreAmbiguousAndDoNotAccumulate() {
+        assertFalse(SenseContextExtractor.extractScreen(whatsapp(secondList = true)).supportsHistory())
+    }
+
+    @Test fun messageTextFollowsVisualOrderEvenWhenTreeOrderDiffers() {
+        val screen = SenseContextExtractor.extractScreen(whatsapp(messages = listOf(
+            positioned("Later", 200), positioned("Earlier", 100))))
+        assertEquals("Earlier\nLater", screen.messages)
+    }
+
+    @Test fun separateIdenticalRepliesArePreservedInHistory() {
+        val screen = SenseContextExtractor.extractScreen(whatsapp(messages = listOf(
+            positioned("Yes", 100), positioned("Yes", 200))))
+        assertEquals("Yes\nYes", screen.messages)
+    }
+
+    @Test fun repeatedParentChildLabelAtSamePositionIsCollapsed() {
+        val screen = SenseContextExtractor.extractScreen(whatsapp(messages = listOf(
+            positioned("A message", 100), positioned("A message", 100))))
+        assertEquals("A message", screen.messages)
+    }
+}

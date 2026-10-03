@@ -1232,4 +1232,46 @@ New dictionary:
     <string name="gesture_data_links">Information on gesture data gathering on:</string>
 
     <!-- new strings should go above the section for gesture data gathering -->
-    <string name="sense_context_accessibility_description">SenseKey context access for reply prediction testing.</string>\n</resources>
+    <string name="sense_context_accessibility_description">Read visible screen text locally for SenseKey reply prediction testing.</string>
+    <string name="sense_context_panel_title">Screen context</string>
+    <string name="sense_context_history_title">History: %1$d/%2$d</string>
+    <string name="sense_context_history_status">%1$s · Scroll the chat to add context</string>
+    <string name="sense_context_one_screen_status">One screen. This conversation layout is not recognized yet.</string>
+    <string name="sense_context_reset">Reset</string>
+    <string name="sense_context_close">Close</string>
+    <string name="sense_context_disabled">SenseKey Context is not connected. Enable it in Android accessibility settings.</string>
+    <string name="sense_context_waiting">Waiting for fresh context from this app. Open a conversation or scroll its messages.</string>
+    <string name="sense_context_empty">This screen exposes no visible message text through accessibility.</string>
+    <string name="sense_completion_settings">SenseKey completions</string>
+    <string name="sense_completion_setup_description">Run a local model on this phone and open a conversation reply field. A suggestion appears for an empty reply or after a pause following a space or punctuation. Swipe right over the continuation to insert it.\n\nWhile typing a word, normal dictionary suggestions remain. When disabled, “Да,” opens context diagnostics. These completions connect only to this phone.</string>
+    <string name="sense_completion_enabled">Suggest a continuation</string>
+    <string name="sense_completion_address">Local server address</string>
+    <string name="sense_completion_model">Model name</string>
+    <string name="sense_completion_model_auto">Leave empty to detect the loaded model</string>
+    <string name="sense_completion_check">Check model</string>
+    <string name="sense_completion_checking">Checking the local model…</string>
+    <string name="sense_completion_model_found">Model available: %1$s</string>
+    <string name="sense_completion_not_running">Local model unavailable. Start the server and check its address.</string>
+    <string name="sense_completion_save">Save</string>
+    <string name="sense_completion_saved">Saved</string>
+    <string name="sense_completion_address_error">Use http://127.0.0.1:port, http://localhost:port or http://[::1]:port.</string>
+    <string name="sense_completion_model_error">Model name is too long.</string>
+    <string name="sense_completion_queued">Request queued…</string>
+    <string name="sense_completion_connecting">Connecting to the local model…</string>
+    <string name="sense_completion_working">Request sent. Waiting for the model…</string>
+    <string name="sense_completion_context_prepared">Context prepared: %1$d of %2$d characters</string>
+    <string name="sense_completion_context_sent">Context sent: %1$d of %2$d characters</string>
+    <string name="sense_completion_ready">%1$d ms · Swipe right to insert</string>
+    <string name="sense_completion_timeout">The model did not respond in time. Tap Retry.</string>
+    <string name="sense_completion_deadline">No continuation after 25 seconds. Tap Retry.</string>
+    <string name="sense_completion_server_error">The local server rejected the request. Check the model and its context size.</string>
+    <string name="sense_completion_response_error">Unexpected model response. Check that the server supports chat completions.</string>
+    <string name="sense_completion_empty">The model replied without a useful short continuation.</string>
+    <string name="sense_completion_retry">Retry</string>
+    <string name="sense_completion_home_description">Local model and swipe continuations</string>
+    <string name="sense_setup_enable">Enable SenseKey in Android</string>
+    <string name="sense_setup_enable_description">Open Android keyboard settings</string>
+    <string name="sense_setup_select">Select SenseKey as your keyboard</string>
+    <string name="sense_builds">SenseKey builds on GitHub</string>
+    <string name="sense_settings_back">Back</string>
+</resources>

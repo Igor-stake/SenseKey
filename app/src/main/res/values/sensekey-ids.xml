@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stable IDs allow Android to restore unsaved form edits on rotation/unfolding. -->
+    <item name="sense_completion_enabled_switch" type="id" />
+    <item name="sense_completion_address_input" type="id" />
+    <item name="sense_completion_model_input" type="id" />
+</resources>
