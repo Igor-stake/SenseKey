@@ -525,6 +525,15 @@
     <string name="sense_completion_response_error">Неожиданный ответ модели. Проверь поддержку chat completions у сервера.</string>
     <string name="sense_completion_empty">Модель ответила, но полезного короткого продолжения нет.</string>
     <string name="sense_completion_retry">Повторить</string>
+    <string name="sense_completion_cancel">Отмена</string>
+    <string name="sense_completion_idle">SenseKey · Можно печатать</string>
+    <string name="sense_completion_cursor_idle">Для продолжения поставь курсор в конец</string>
+    <string name="sense_completion_cancelled">Подсказка очищена · Можно печатать</string>
+    <string name="sense_completion_echo">Модель повторила переписку. Подсказка убрана.</string>
+    <string name="sense_completion_timings">Модель: контекст %1$d мс · генерация %2$d мс</string>
+    <string name="sense_completion_keyboard_height">Высота клавиатуры, вертикально</string>
+    <string name="sense_completion_keyboard_height_landscape">Высота клавиатуры, горизонтально</string>
+    <string name="sense_completion_panel_height">Высота панели подсказок</string>
     <string name="sense_completion_home_description">Локальная модель и продолжения по свайпу</string>
     <string name="sense_setup_enable">Разрешить клавиатуру SenseKey</string>
     <string name="sense_setup_enable_description">Открыть список клавиатур Android</string>

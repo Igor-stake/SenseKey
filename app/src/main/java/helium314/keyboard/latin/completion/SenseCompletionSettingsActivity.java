@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +27,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import helium314.keyboard.latin.R;
+import helium314.keyboard.keyboard.KeyboardSwitcher;
+import helium314.keyboard.latin.settings.Settings;
 import helium314.keyboard.latin.utils.DeviceProtectedUtils;
 
 /** Pre-alpha setup. Checking the model sends no editor or conversation data. */
@@ -100,6 +103,17 @@ public final class SenseCompletionSettingsActivity extends Activity {
         content.addView(model);
         modelLabel.setLabelFor(model.getId());
 
+        final SeekBar portraitHeight = addHeightControl(content,
+                R.id.sense_completion_portrait_height, R.string.sense_completion_keyboard_height,
+                30, 150, Math.round(Settings.readHeightScale(prefs, false) * 100), true);
+        final SeekBar landscapeHeight = addHeightControl(content,
+                R.id.sense_completion_landscape_height, R.string.sense_completion_keyboard_height_landscape,
+                30, 150, Math.round(Settings.readHeightScale(prefs, true) * 100), true);
+        final SeekBar panelHeight = addHeightControl(content,
+                R.id.sense_completion_panel_height, R.string.sense_completion_panel_height,
+                SenseCompletionLayout.MIN_PANEL_DP, SenseCompletionLayout.MAX_PANEL_DP,
+                SenseCompletionLayout.panelHeightDp(prefs), false);
+
         final TextView status = new TextView(this);
         status.setPadding(0, padding, 0, padding);
         content.addView(status);
@@ -149,10 +163,40 @@ public final class SenseCompletionSettingsActivity extends Activity {
             }
             prefs.edit().putBoolean(SenseCompletionClient.PREF_ENABLED, enabled.isChecked())
                     .putString(SenseCompletionClient.PREF_BASE_URL, endpoint)
-                    .putString(SenseCompletionClient.PREF_MODEL, chosenModel).apply();
+                    .putString(SenseCompletionClient.PREF_MODEL, chosenModel)
+                    .putFloat(SenseCompletionLayout.keyboardHeightKey(false),
+                            (portraitHeight.getProgress() + 30) / 100f)
+                    .putFloat(SenseCompletionLayout.keyboardHeightKey(true),
+                            (landscapeHeight.getProgress() + 30) / 100f)
+                    .putInt(SenseCompletionLayout.PREF_PANEL_HEIGHT,
+                            panelHeight.getProgress() + SenseCompletionLayout.MIN_PANEL_DP).apply();
+            KeyboardSwitcher.getInstance().setThemeNeedsReload();
             Toast.makeText(this, R.string.sense_completion_saved, Toast.LENGTH_SHORT).show();
             finish();
         });
+    }
+
+    private SeekBar addHeightControl(final LinearLayout parent, final int id, final int title,
+            final int min, final int max, final int initial, final boolean percent) {
+        final TextView label = new TextView(this);
+        label.setPadding(0, (int) (12 * getResources().getDisplayMetrics().density), 0, 0);
+        parent.addView(label);
+        final SeekBar control = new SeekBar(this);
+        control.setId(id);
+        control.setMax(max - min);
+        control.setProgress(Math.max(0, Math.min(max - min, initial - min)));
+        final Runnable updateLabel = () -> label.setText(getString(title) + ": "
+                + (control.getProgress() + min) + (percent ? "%" : " dp"));
+        control.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override public void onProgressChanged(final SeekBar bar, final int progress,
+                    final boolean fromUser) { updateLabel.run(); }
+            @Override public void onStartTrackingTouch(final SeekBar bar) {}
+            @Override public void onStopTrackingTouch(final SeekBar bar) {}
+        });
+        updateLabel.run();
+        parent.addView(control);
+        label.setLabelFor(id);
+        return control;
     }
 
     @Override public void onDestroy() {

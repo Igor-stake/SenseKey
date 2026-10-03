@@ -20,4 +20,8 @@ public final class SenseCompletionBudget {
     public long remainingMillis(final long now) {
         return Math.max(0L, TIMEOUT_MILLIS - Math.max(0L, now - startedAt));
     }
+
+    public long elapsedMillis(final long now) {
+        return Math.max(0L, now - startedAt);
+    }
 }

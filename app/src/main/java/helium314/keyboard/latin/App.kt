@@ -41,6 +41,8 @@ class App : Application() {
         AppUpgrade.transferOldPinnedClips(this) // todo: remove in a few months, maybe mid 2026
         app = this
         Defaults.initDynamicDefaults(this)
+        helium314.keyboard.latin.completion.SenseCompletionLayout.applyInitialCompactLayout(
+            DeviceProtectedUtils.getSharedPreferences(this))
         LayoutUtilsCustom.removeMissingLayouts(this) // only after version upgrade
         SupportedEmojis.load(this)
 

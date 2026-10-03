@@ -73,12 +73,13 @@ class SenseCompletionClientTest {
         val body = JSONObject(postBody.get())
         assertFalse(body.has("tools"))
         assertFalse(body.getBoolean("stream"))
-        assertEquals(64, body.getInt("max_tokens"))
+        assertEquals(48, body.getInt("max_tokens"))
+        assertTrue(body.getBoolean("cache_prompt"))
         assertFalse(body.getJSONObject("chat_template_kwargs").getBoolean("enable_thinking"))
         val messages = body.getJSONArray("messages")
         assertEquals("system", messages.getJSONObject(0).getString("role"))
         assertEquals("user", messages.getJSONObject(1).getString("role"))
-        val data = JSONObject(messages.getJSONObject(1).getString("content"))
+        val data = JSONObject(messages.getJSONObject(messages.length() - 1).getString("content"))
         assertEquals("Да,", data.getString("draft"))
         assertEquals("Сможешь приехать завтра к 11?", data.getString("screen_context"))
     }
@@ -187,7 +188,8 @@ class SenseCompletionClientTest {
         val long = "Earlier material\n".repeat(400) + "Latest relevant question"
         SenseContextCache.update("chat.test", 1, long)
         val body = SenseCompletionClient.createPayload("chosen-model", request())
-        val data = JSONObject(body.getJSONArray("messages").getJSONObject(1).getString("content"))
+        val messages = body.getJSONArray("messages")
+        val data = JSONObject(messages.getJSONObject(messages.length() - 1).getString("content"))
         assertTrue(data.getString("screen_context").length <= SenseCompletionClient.MAX_CONTEXT_CHARS)
         assertTrue(data.getString("screen_context").endsWith("Latest relevant question"))
         assertEquals("ab", SenseCompletionClient.safeTail("😀ab", 3))
@@ -203,7 +205,7 @@ class SenseCompletionClientTest {
         assertEquals(listOf(SenseCompletionClient.Stage.CONNECTING,
             SenseCompletionClient.Stage.WAITING_FOR_MODEL), stages)
         val messages = JSONObject(postBody.get()).getJSONArray("messages")
-        val data = JSONObject(messages.getJSONObject(1).getString("content"))
+        val data = JSONObject(messages.getJSONObject(messages.length() - 1).getString("content"))
         assertEquals(request.payloadContext, data.getString("screen_context"))
         assertTrue(request.payloadContext.length <= 4_500)
         assertTrue(request.payloadContext.length < request.context.length)
@@ -216,8 +218,8 @@ class SenseCompletionClientTest {
         val result = SenseCompletionClient().complete(base, "chosen-model", request,
             SenseCompletionClient.Cancellation())
         assertEquals("Скоро отвечу.", result.suffix)
-        val data = JSONObject(JSONObject(postBody.get()).getJSONArray("messages")
-            .getJSONObject(1).getString("content"))
+        val messages = JSONObject(postBody.get()).getJSONArray("messages")
+        val data = JSONObject(messages.getJSONObject(messages.length() - 1).getString("content"))
         assertEquals("", data.getString("draft"))
         assertEquals("ru-RU", data.getString("reply_language"))
     }
@@ -227,6 +229,34 @@ class SenseCompletionClientTest {
             assertEquals("", SenseCompletionClient.cleanSuffix(raw, "Да,"), raw)
         }
         assertEquals("", SenseCompletionClient.cleanSuffix("Я думаю.", "Я думаю, "))
+        assertEquals(" стоит попробовать.", SenseCompletionClient.cleanSuffix("Я думаю, стоит попробовать.", "я думаю,"))
+        assertEquals(" Давайте обсудим.", SenseCompletionClient.cleanSuffix("Давайте обсудим.", "Да"))
         assertEquals(" стоит попробовать.", SenseCompletionClient.cleanSuffix("стоит попробовать.", "Я думаю,"))
+    }
+
+    @Test fun aCollageOfOldMessagesIsReportedAsEchoAndCannotBeInserted() {
+        SenseContextCache.update("chat.test", 1, "Чай готов?\nУже давно готов!")
+        response.set("""{"choices":[{"message":{"content":"что чай готов уже давно готов."},"finish_reason":"stop"}]}""")
+        val result = SenseCompletionClient().complete(base, "chosen-model", request("Я думаю,"),
+            SenseCompletionClient.Cancellation())
+        assertEquals(SenseCompletionClient.Error.ECHO, result.error)
+        assertEquals("", result.suffix)
+        assertEquals(1, calls.get()) // No invisible retry that adds latency or fabricated fallback.
+    }
+
+    @Test fun serverTimingsAreOptionalBoundedAndSeparateFromClientDuration() {
+        response.set("""{"choices":[{"message":{"content":"стоит обсудить."},"finish_reason":"stop"}],
+            "timings":{"prompt_ms":123.4,"predicted_ms":456.7},"usage":{"completion_tokens":9}}""")
+        val result = complete("chosen-model")
+        assertEquals(123L, result.promptMillis)
+        assertEquals(457L, result.generationMillis)
+        assertEquals(9, result.generatedTokens)
+        assertTrue(result.elapsedMillis >= 0)
+        response.set("""{"choices":[{"message":{"content":"стоит обсудить."}}],
+            "timings":{"prompt_ms":-1,"predicted_ms":1e99},"usage":{"completion_tokens":-4}}""")
+        val malformed = complete("chosen-model")
+        assertEquals(-1L, malformed.promptMillis)
+        assertEquals(-1L, malformed.generationMillis)
+        assertEquals(-1, malformed.generatedTokens)
     }
 }

@@ -1243,7 +1243,7 @@ New dictionary:
     <string name="sense_context_waiting">Waiting for fresh context from this app. Open a conversation or scroll its messages.</string>
     <string name="sense_context_empty">This screen exposes no visible message text through accessibility.</string>
     <string name="sense_completion_settings">SenseKey completions</string>
-    <string name="sense_completion_setup_description">Run a local model on this phone and open a conversation reply field. A suggestion appears for an empty reply or after a pause following a space or punctuation. Swipe right over the continuation to insert it.\n\nWhile typing a word, normal dictionary suggestions remain. When disabled, “Да,” opens context diagnostics. These completions connect only to this phone.</string>
+    <string name="sense_completion_setup_description">Run a local model on this phone and open a conversation reply field. The panel stays open while typing. A continuation is requested for an empty reply or after a pause following whitespace or punctuation. Swipe right to insert it; Cancel clears it without closing the panel.\n\nWord suggestions remain available between continuations. Adjust the keyboard and panel height below. When this mode is off, “Да,” opens the context diagnostic. These suggestions connect only to this phone.</string>
     <string name="sense_completion_enabled">Suggest a continuation</string>
     <string name="sense_completion_address">Local server address</string>
     <string name="sense_completion_model">Model name</string>
@@ -1268,6 +1268,15 @@ New dictionary:
     <string name="sense_completion_response_error">Unexpected model response. Check that the server supports chat completions.</string>
     <string name="sense_completion_empty">The model replied without a useful short continuation.</string>
     <string name="sense_completion_retry">Retry</string>
+    <string name="sense_completion_cancel">Cancel</string>
+    <string name="sense_completion_idle">SenseKey · Continue typing</string>
+    <string name="sense_completion_cursor_idle">Move the cursor to the end for a continuation</string>
+    <string name="sense_completion_cancelled">Suggestion cleared · Continue typing</string>
+    <string name="sense_completion_echo">The model repeated the chat. Suggestion discarded.</string>
+    <string name="sense_completion_timings">Model: context %1$d ms · generation %2$d ms</string>
+    <string name="sense_completion_keyboard_height">Keyboard height, portrait</string>
+    <string name="sense_completion_keyboard_height_landscape">Keyboard height, landscape</string>
+    <string name="sense_completion_panel_height">Suggestion panel height</string>
     <string name="sense_completion_home_description">Local model and swipe continuations</string>
     <string name="sense_setup_enable">Enable SenseKey in Android</string>
     <string name="sense_setup_enable_description">Open Android keyboard settings</string>
