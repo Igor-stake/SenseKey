@@ -71,8 +71,14 @@ public final class SenseContextAccessibilityService extends AccessibilityService
             // A navigation/dialog boundary must not join contacts with the same display name.
             SenseContextCache.clear();
         } else if (event != null && event.getEventType() == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
-            // Keyboard geometry changed; the same conversation must be reverified.
-            SenseContextCache.invalidateWindow();
+            // IME/System UI window events do not necessarily change the conversation.
+            // Reverify the foreground app now instead of advancing its generation first:
+            // otherwise panel/window feedback repeatedly cancels an unchanged LLM request.
+            // A changed app/window/header/text is still detected by the real capture, and
+            // an unreadable foreground app clears the snapshot before this callback returns.
+            mHandler.removeCallbacks(mRefreshRunnable);
+            refreshContext();
+            return;
         }
         scheduleRefresh();
     }

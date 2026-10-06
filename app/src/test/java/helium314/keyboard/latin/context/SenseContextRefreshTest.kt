@@ -3,6 +3,7 @@ package helium314.keyboard.latin.context
 
 import android.app.Application
 import android.os.Looper
+import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import helium314.keyboard.latin.completion.SenseCompletionRequest
@@ -93,5 +94,51 @@ class SenseContextRefreshTest {
         verify(root, never()).text
         assertFalse(SenseContextCache.getSnapshot().serviceConnected)
         assertEquals("", SenseContextCache.getSnapshot().text)
+    }
+
+    private fun windowsChanged() = AccessibilityEvent(AccessibilityEvent.TYPE_WINDOWS_CHANGED)
+
+    @Test fun repeatedWindowEventsDoNotInvalidateAnUnchangedConversation() {
+        val request = SenseCompletionRequest(4, 8, "chat.test", 3, "Да,", SenseContextCache.getSnapshot())
+        val generation = SenseContextCache.getSnapshot().generation
+        repeat(100) {
+            service.onAccessibilityEvent(windowsChanged())
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(250))
+            assertEquals(generation, SenseContextCache.getSnapshot().generation)
+            assertTrue(request.matchesContext(SenseContextCache.getSnapshot()))
+        }
+    }
+
+    @Test fun windowChangeReverifiesChangedMessagesBeforeReturning() {
+        val request = SenseCompletionRequest(4, 8, "chat.test", 3, "Да,", SenseContextCache.getSnapshot())
+        `when`(root.text).thenReturn("A new question exposed after the keyboard resized.")
+        service.onAccessibilityEvent(windowsChanged())
+        assertEquals("A new question exposed after the keyboard resized.", SenseContextCache.getSnapshot().text)
+        assertFalse(request.matchesContext(SenseContextCache.getSnapshot()))
+    }
+
+    @Test fun changedApplicationWindowRejectsEvenIdenticalMessagesImmediately() {
+        val request = SenseCompletionRequest(4, 8, "chat.test", 3, "Да,", SenseContextCache.getSnapshot())
+        `when`(root.windowId).thenReturn(2)
+        service.onAccessibilityEvent(windowsChanged())
+        assertEquals(2, SenseContextCache.getSnapshot().windowId)
+        assertFalse(request.matchesContext(SenseContextCache.getSnapshot()))
+    }
+
+    @Test fun missingApplicationWindowRemovesTheOldContextImmediately() {
+        val request = SenseCompletionRequest(4, 8, "chat.test", 3, "Да,", SenseContextCache.getSnapshot())
+        Shadow.extract<ShadowAccessibilityService>(service).setWindows(emptyList())
+        service.onAccessibilityEvent(windowsChanged())
+        assertEquals("", SenseContextCache.getSnapshot().text)
+        assertFalse(request.matchesContext(SenseContextCache.getSnapshot()))
+    }
+
+    @Test fun navigationStillRejectsIdenticalConversationAfterRecapture() {
+        val request = SenseCompletionRequest(4, 8, "chat.test", 3, "Да,", SenseContextCache.getSnapshot())
+        service.onAccessibilityEvent(AccessibilityEvent(AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED))
+        assertFalse(request.matchesContext(SenseContextCache.getSnapshot()))
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(150))
+        assertEquals("A visible question.", SenseContextCache.getSnapshot().text)
+        assertFalse(request.matchesContext(SenseContextCache.getSnapshot()))
     }
 }
