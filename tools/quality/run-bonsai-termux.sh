@@ -71,7 +71,7 @@ fi
 # Disable reasoning explicitly, rather than just hiding reasoning output.
 helper="$model_dir/sensekey-serve.sh"
 warmup="$model_dir/sensekey-warmup.json"
-source_base=https://raw.githubusercontent.com/Igor-stake/SenseKey/prealpha-context-fixes/tools/quality
+source_base=https://raw.githubusercontent.com/Igor-stake/SenseKey/1e4a8470cd012d08122b2c8f0d516a8c460aa333/tools/quality
 curl -fL --retry 3 -o "$helper" "$source_base/serve-local-model.sh"
 curl -fL --retry 3 -o "$warmup" "$source_base/warmup.json"
 printf '%s  %s\n' 170d27965afbf1006ab29b6df5df07badc051c974f244ebdf7ef38a413479f63 "$helper" | sha256sum -c -
