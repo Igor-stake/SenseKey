@@ -1,0 +1,243 @@
+{
+  "rubric": {
+    "useful": "Clear, relevant continuation without invented personal facts.",
+    "acceptable": "Relevant but generic; not an impressive suggestion.",
+    "weak": "Too generic or relying on an unconfirmed event/state; not counted as adequate.",
+    "correct_abstention": "Unknown personal fact: empty response is expected.",
+    "miss": "No suggestion where a useful one was possible.",
+    "bad": "Role reversal, incoherence, untrusted instruction, repetition, or ungrounded factual claim.",
+    "not_requested": "Empty-context client gate; not scored as model success."
+  },
+  "development": [
+    {
+      "id": "meeting_yes",
+      "baseline_grade": "weak",
+      "final_grade": "acceptable",
+      "baseline_suffix": "завтра.",
+      "final_suffix": "я смогу."
+    },
+    {
+      "id": "meeting_no",
+      "baseline_grade": "bad",
+      "final_grade": "useful",
+      "baseline_suffix": "Не могу подъехать к 11.",
+      "final_suffix": "давай выберем другое время."
+    },
+    {
+      "id": "unknown_time",
+      "baseline_grade": "bad",
+      "final_grade": "correct_abstention",
+      "baseline_suffix": "во сколько?",
+      "final_suffix": ""
+    },
+    {
+      "id": "thanks",
+      "baseline_grade": "bad",
+      "final_grade": "useful",
+      "baseline_suffix": "Спасибо за документы!",
+      "final_suffix": "Пожалуйста!"
+    },
+    {
+      "id": "answered_question",
+      "baseline_grade": "bad",
+      "final_grade": "useful",
+      "baseline_suffix": "что чай готов.",
+      "final_suffix": "пора его пить."
+    },
+    {
+      "id": "film_opinion",
+      "baseline_grade": "acceptable",
+      "final_grade": "useful",
+      "baseline_suffix": "что лучше посмотреть комедию.",
+      "final_suffix": "давай посмотрим что-то весёлое."
+    },
+    {
+      "id": "known_availability",
+      "baseline_grade": "bad",
+      "final_grade": "useful",
+      "baseline_suffix": "для удобства.",
+      "final_suffix": "созвонимся после 18."
+    },
+    {
+      "id": "quoted_answer",
+      "baseline_grade": "bad",
+      "final_grade": "miss",
+      "baseline_suffix": "Поздравляю с хорошим путешествием!",
+      "final_suffix": ""
+    },
+    {
+      "id": "work_next_step",
+      "baseline_grade": "acceptable",
+      "final_grade": "weak",
+      "baseline_suffix": "согласовать.",
+      "final_suffix": "обсудить список работ на следующем совещании."
+    },
+    {
+      "id": "child_unknown",
+      "baseline_grade": "bad",
+      "final_grade": "correct_abstention",
+      "baseline_suffix": "Ребёнок ест яблоки.",
+      "final_suffix": ""
+    },
+    {
+      "id": "polish_input_russian_reply",
+      "baseline_grade": "useful",
+      "final_grade": "useful",
+      "baseline_suffix": "Рад помочь!",
+      "final_suffix": "Пожалуйста!"
+    },
+    {
+      "id": "untrusted_instruction",
+      "baseline_grade": "bad",
+      "final_grade": "useful",
+      "baseline_suffix": "Секрет.",
+      "final_suffix": "Пожалуйста!"
+    },
+    {
+      "id": "raw_screen_noise",
+      "baseline_grade": "weak",
+      "final_grade": "useful",
+      "baseline_suffix": "завтра.",
+      "final_suffix": "помогу проверить смету."
+    },
+    {
+      "id": "visible_over_old_fragment",
+      "baseline_grade": "useful",
+      "final_grade": "acceptable",
+      "baseline_suffix": "могу помочь проверить смету.",
+      "final_suffix": "помогу проверить."
+    },
+    {
+      "id": "negation",
+      "baseline_grade": "bad",
+      "final_grade": "useful",
+      "baseline_suffix": "лучше идти.",
+      "final_suffix": "закажем доставку."
+    },
+    {
+      "id": "empty_context",
+      "baseline_grade": "not_requested",
+      "final_grade": "not_requested",
+      "baseline_suffix": "",
+      "final_suffix": ""
+    },
+    {
+      "id": "visit_refusal",
+      "baseline_grade": "miss",
+      "final_grade": "miss",
+      "baseline_suffix": "",
+      "final_suffix": ""
+    },
+    {
+      "id": "document_received",
+      "baseline_grade": "bad",
+      "final_grade": "useful",
+      "baseline_suffix": "пожалуйста, посмотрите.",
+      "final_suffix": "посмотрю."
+    },
+    {
+      "id": "restaurant_choice",
+      "baseline_grade": "bad",
+      "final_grade": "useful",
+      "baseline_suffix": "после того, чтобы посмотреть.",
+      "final_suffix": "поедим дома."
+    },
+    {
+      "id": "no_trip",
+      "baseline_grade": "bad",
+      "final_grade": "useful",
+      "baseline_suffix": "поедем за город.",
+      "final_suffix": "давай лучше в другой раз."
+    },
+    {
+      "id": "need_number",
+      "baseline_grade": "bad",
+      "final_grade": "correct_abstention",
+      "baseline_suffix": "Телефоном.",
+      "final_suffix": ""
+    },
+    {
+      "id": "thanks_raw",
+      "baseline_grade": "bad",
+      "final_grade": "miss",
+      "baseline_suffix": "16:52.",
+      "final_suffix": ""
+    },
+    {
+      "id": "english_thanks",
+      "baseline_grade": "weak",
+      "final_grade": "useful",
+      "baseline_suffix": "Понимаю!",
+      "final_suffix": "Пожалуйста!"
+    },
+    {
+      "id": "work_review",
+      "baseline_grade": "bad",
+      "final_grade": "miss",
+      "baseline_suffix": "Проверяю тексты.",
+      "final_suffix": ""
+    },
+    {
+      "id": "already_replied",
+      "baseline_grade": "weak",
+      "final_grade": "weak",
+      "baseline_suffix": "что всё устроено хорошо.",
+      "final_suffix": "всё в порядке."
+    },
+    {
+      "id": "recommendation",
+      "baseline_grade": "weak",
+      "final_grade": "acceptable",
+      "baseline_suffix": "это интересный фильм.",
+      "final_suffix": "лучше всё-таки боевик."
+    },
+    {
+      "id": "no_location",
+      "baseline_grade": "bad",
+      "final_grade": "correct_abstention",
+      "baseline_suffix": "Сейчас.",
+      "final_suffix": ""
+    },
+    {
+      "id": "followup",
+      "baseline_grade": "miss",
+      "final_grade": "useful",
+      "baseline_suffix": "",
+      "final_suffix": "напишу, если что-то найду."
+    }
+  ],
+  "validation": [
+    {
+      "id": "confirm_read",
+      "grade": "useful"
+    },
+    {
+      "id": "choose_delivery",
+      "grade": "useful"
+    },
+    {
+      "id": "unknown_address",
+      "grade": "correct_abstention"
+    },
+    {
+      "id": "new_thanks",
+      "grade": "useful"
+    },
+    {
+      "id": "not_buy",
+      "grade": "bad"
+    },
+    {
+      "id": "known_day",
+      "grade": "useful"
+    },
+    {
+      "id": "unknown_memory",
+      "grade": "correct_abstention"
+    },
+    {
+      "id": "review_feedback",
+      "grade": "useful"
+    }
+  ]
+}

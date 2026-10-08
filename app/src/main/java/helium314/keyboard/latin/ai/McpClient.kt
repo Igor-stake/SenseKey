@@ -240,7 +240,7 @@ object McpClient {
             put("protocolVersion", PROTOCOL_VERSION)
             put("capabilities", JSONObject().put("tools", JSONObject()))
             put("clientInfo", JSONObject().apply {
-                put("name", "Deskdrop")
+                put("name", "SenseKey")
                 put("version", "1.0")
             })
         }

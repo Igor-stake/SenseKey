@@ -19,19 +19,21 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.MaterialTheme
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.collectAsState
+import android.content.Context
+import android.provider.Settings as AndroidSettings
+import android.view.inputmethod.InputMethodManager
+import helium314.keyboard.latin.completion.SenseCompletionSettingsActivity
+import helium314.keyboard.latin.utils.UncachedInputMethodManagerUtils
+import helium314.keyboard.latin.utils.getActivity
+import helium314.keyboard.settings.SettingsActivity
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -72,13 +74,24 @@ fun MainSettingsScreen(
         title = stringResource(R.string.ime_settings),
         settings = emptyList(),
     ) {
+        val context = LocalContext.current
         val enabledSubtypes = SubtypeSettings.getEnabledSubtypes(true)
         Scaffold(contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)) { innerPadding ->
             Column(
                 Modifier
                     .padding(innerPadding)
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
+                SenseKeySetupActions()
+                CompactPreference(
+                    name = stringResource(R.string.sense_completion_settings),
+                    description = stringResource(R.string.sense_completion_home_description),
+                    icon = R.drawable.ic_ai_assist,
+                    onClick = {
+                        context.startActivity(Intent(context, SenseCompletionSettingsActivity::class.java))
+                    },
+                )
                 CompactPreference(
                     name = stringResource(R.string.language_and_layouts_title),
                     description = enabledSubtypes.joinToString(", ") { it.displayName() },
@@ -146,11 +159,8 @@ fun MainSettingsScreen(
                     onClick = onClickAbout,
                 )
 
-                Spacer(Modifier.weight(1f))
-
-                CheckForUpdateButton()
-
-                TipsCarousel()
+                Spacer(Modifier.height(12.dp))
+                SenseKeyBuildsButton()
             }
         }
     }
@@ -167,7 +177,7 @@ private fun CompactPreference(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .heightIn(min = 32.dp)
+            .heightIn(min = 48.dp)
             .padding(horizontal = 12.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -192,65 +202,38 @@ private fun CompactPreference(
 }
 
 @Composable
-private fun CheckForUpdateButton() {
+private fun SenseKeySetupActions() {
     val context = LocalContext.current
-    var checking by remember { mutableStateOf(false) }
-    var result by remember { mutableStateOf<helium314.keyboard.latin.ai.UpdateChecker.UpdateResult?>(null) }
+    // Read the value so returning from Android settings recomposes these actions.
+    (context.getActivity() as? SettingsActivity)?.prefChanged?.collectAsState()?.value
+    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    if (!UncachedInputMethodManagerUtils.isThisImeEnabled(context, imm)) {
+        CompactPreference(
+            name = stringResource(R.string.sense_setup_enable),
+            description = stringResource(R.string.sense_setup_enable_description),
+            icon = R.drawable.ic_ime_switcher,
+            onClick = { context.startActivity(Intent(AndroidSettings.ACTION_INPUT_METHOD_SETTINGS)) },
+        )
+    } else if (!UncachedInputMethodManagerUtils.isThisImeCurrent(context, imm)) {
+        CompactPreference(
+            name = stringResource(R.string.sense_setup_select),
+            icon = R.drawable.ic_ime_switcher,
+            onClick = { imm.showInputMethodPicker() },
+        )
+    }
+}
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
+@Composable
+private fun SenseKeyBuildsButton() {
+    val context = LocalContext.current
+    TextButton(
+        onClick = {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(
+                "https://github.com/Igor-stake/SenseKey/actions/workflows/build-debug-apk.yml")))
+        },
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        if (checking) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(16.dp),
-                strokeWidth = 2.dp,
-                color = brandTeal(),
-            )
-        } else if (result != null) {
-            when {
-                result!!.found == true -> {
-                    Button(
-                        onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(result!!.downloadUrl))
-                            context.startActivity(intent)
-                        },
-                        colors = brandButtonColors(),
-                        shape = RoundedCornerShape(8.dp),
-                    ) {
-                        Text("Download v${result!!.version}")
-                    }
-                }
-                result!!.found == false -> {
-                    Text(
-                        "You're up to date.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                }
-                else -> {
-                    Text(
-                        "Could not check for updates.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
-                }
-            }
-        } else {
-            TextButton(onClick = {
-                checking = true
-                result = null
-                helium314.keyboard.latin.ai.UpdateChecker.checkNow(context) { r ->
-                    checking = false
-                    result = r
-                }
-            }) {
-                Text("Check for updates", color = brandTeal())
-            }
-        }
+        Text(stringResource(R.string.sense_builds), color = brandTeal())
     }
 }
 

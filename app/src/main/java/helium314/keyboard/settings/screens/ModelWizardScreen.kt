@@ -48,6 +48,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import helium314.keyboard.latin.R
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -216,7 +218,7 @@ fun ModelWizardScreen(onClickBack: () -> Unit) {
                         }
                     }
                     Text(
-                        "Tell the AI about yourself. This is sent with every request so it knows your name, style, and preferences.",
+                        stringResource(R.string.ai_lorebook_summary),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

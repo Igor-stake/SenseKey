@@ -7,7 +7,7 @@ import helium314.keyboard.latin.define.DebugFlags
 import helium314.keyboard.latin.settings.Defaults
 import helium314.keyboard.latin.settings.Settings
 import helium314.keyboard.latin.utils.LayoutUtilsCustom
-import helium314.keyboard.latin.ai.DeskdropShortcutManager
+import helium314.keyboard.latin.ai.SenseKeyShortcutManager
 import helium314.keyboard.latin.utils.DeviceProtectedUtils
 import helium314.keyboard.latin.utils.Log
 import helium314.keyboard.latin.utils.SubtypeSettings
@@ -41,20 +41,22 @@ class App : Application() {
         AppUpgrade.transferOldPinnedClips(this) // todo: remove in a few months, maybe mid 2026
         app = this
         Defaults.initDynamicDefaults(this)
+        helium314.keyboard.latin.completion.SenseCompletionLayout.applyInitialCompactLayout(
+            DeviceProtectedUtils.getSharedPreferences(this))
         LayoutUtilsCustom.removeMissingLayouts(this) // only after version upgrade
         SupportedEmojis.load(this)
 
         // Build dynamic app shortcuts (last chat, presets) and refresh when presets change
-        DeskdropShortcutManager.rebuildDynamicShortcuts(this)
+        SenseKeyShortcutManager.rebuildDynamicShortcuts(this)
 
         DeviceProtectedUtils.getSharedPreferences(this)
             .registerOnSharedPreferenceChangeListener { _, key ->
                 if (key == Settings.PREF_AI_CLOUD_PRESETS) {
-                    DeskdropShortcutManager.rebuildDynamicShortcuts(this@App)
+                    SenseKeyShortcutManager.rebuildDynamicShortcuts(this@App)
                 }
             }
 
-        helium314.keyboard.latin.ai.UpdateChecker.checkInBackground(this)
+        // Pre-alpha APKs are published in SenseKey Actions, not upstream releases.
 
         val packageInfo = packageManager.getPackageInfo(packageName, 0)
         @Suppress("DEPRECATION")

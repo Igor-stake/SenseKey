@@ -3,7 +3,7 @@
     SPDX-License-Identifier: GPL-3.0-only
 -->
 <resources>
-    <!-- Deskdrop teal branding for dark mode -->
+    <!-- SenseKey teal branding for dark mode -->
     <color name="accent">#2D8B7A</color>
     <color name="setup_background">@android:color/system_neutral1_900</color>
     <color name="setup_step_background">#FF1A3A3A</color>

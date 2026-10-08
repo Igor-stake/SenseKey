@@ -1,0 +1,258 @@
+[
+  {
+    "id": "confirm_read",
+    "draft": "Хорошо, ",
+    "raw": "{\"text\":\"Хорошо, прочту.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 165.16,
+    "check": "Естественно подтвердить намерение прочитать; не утверждать, что уже прочитал.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "прочту.",
+    "unsupported_specifics": false,
+    "timings": {
+      "cache_n": 0,
+      "prompt_n": 954,
+      "prompt_ms": 159925.048,
+      "prompt_per_token_ms": 167.63631865828094,
+      "prompt_per_second": 5.965294442181439,
+      "predicted_n": 12,
+      "predicted_ms": 5145.137,
+      "predicted_per_token_ms": 467.73972727272724,
+      "predicted_per_second": 2.137941127709525
+    },
+    "usage": {
+      "completion_tokens": 12,
+      "prompt_tokens": 954,
+      "total_tokens": 966,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    },
+    "reasoning_content": ""
+  },
+  {
+    "id": "choose_delivery",
+    "draft": "Давай ",
+    "raw": "{\"text\":\"Давай закажем.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 12.03,
+    "check": "Коротко поддержать или обсудить заказ еды, без цены и времени.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "закажем.",
+    "unsupported_specifics": false,
+    "timings": {
+      "cache_n": 910,
+      "prompt_n": 41,
+      "prompt_ms": 8014.1,
+      "prompt_per_token_ms": 195.4658536585366,
+      "prompt_per_second": 5.115983079821814,
+      "predicted_n": 10,
+      "predicted_ms": 3930.593,
+      "predicted_per_token_ms": 436.73255555555556,
+      "predicted_per_second": 2.2897308370518137
+    },
+    "usage": {
+      "completion_tokens": 10,
+      "prompt_tokens": 951,
+      "total_tokens": 961,
+      "prompt_tokens_details": {
+        "cached_tokens": 910
+      }
+    },
+    "reasoning_content": ""
+  },
+  {
+    "id": "unknown_address",
+    "draft": "",
+    "raw": "{\"text\":\"\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 8.13,
+    "check": "Не выдумывать адрес; пустое предложение.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "",
+    "unsupported_specifics": false,
+    "timings": {
+      "cache_n": 910,
+      "prompt_n": 35,
+      "prompt_ms": 6455.055,
+      "prompt_per_token_ms": 184.43014285714287,
+      "prompt_per_second": 5.422107170271981,
+      "predicted_n": 5,
+      "predicted_ms": 1616.545,
+      "predicted_per_token_ms": 404.13625,
+      "predicted_per_second": 2.4744130228357393
+    },
+    "usage": {
+      "completion_tokens": 5,
+      "prompt_tokens": 945,
+      "total_tokens": 950,
+      "prompt_tokens_details": {
+        "cached_tokens": 910
+      }
+    },
+    "reasoning_content": ""
+  },
+  {
+    "id": "new_thanks",
+    "draft": "",
+    "raw": "{\"text\":\"Пожалуйста!\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 10.3,
+    "check": "Вежливый ответ на благодарность.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "Пожалуйста!",
+    "unsupported_specifics": false,
+    "timings": {
+      "cache_n": 910,
+      "prompt_n": 37,
+      "prompt_ms": 6383.126,
+      "prompt_per_token_ms": 172.51691891891892,
+      "prompt_per_second": 5.796532921330395,
+      "predicted_n": 10,
+      "predicted_ms": 3838.431,
+      "predicted_per_token_ms": 426.49233333333336,
+      "predicted_per_second": 2.3447080330478784
+    },
+    "usage": {
+      "completion_tokens": 10,
+      "prompt_tokens": 947,
+      "total_tokens": 957,
+      "prompt_tokens_details": {
+        "cached_tokens": 910
+      }
+    },
+    "reasoning_content": ""
+  },
+  {
+    "id": "not_buy",
+    "draft": "Не стоит, ",
+    "raw": "{\"text\":\"Не стоит, давай поищем что-то поменьше.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 15.11,
+    "check": "Сохранить отрицание; без выдуманной цены, размеров комнаты и причин пользователя.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "давай поищем что-то поменьше.",
+    "unsupported_specifics": false,
+    "timings": {
+      "cache_n": 910,
+      "prompt_n": 38,
+      "prompt_ms": 6940.883,
+      "prompt_per_token_ms": 182.65481578947367,
+      "prompt_per_second": 5.474807744201999,
+      "predicted_n": 19,
+      "predicted_ms": 8087.012,
+      "predicted_per_token_ms": 449.2784444444444,
+      "predicted_per_second": 2.2257911822067284
+    },
+    "usage": {
+      "completion_tokens": 19,
+      "prompt_tokens": 948,
+      "total_tokens": 967,
+      "prompt_tokens_details": {
+        "cached_tokens": 910
+      }
+    },
+    "reasoning_content": ""
+  },
+  {
+    "id": "known_day",
+    "draft": "Давай ",
+    "raw": "{\"text\":\"Давай в субботу после 15.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 15.01,
+    "check": "Использовать известную субботу/15, без другого времени.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "в субботу после 15.",
+    "unsupported_specifics": false,
+    "timings": {
+      "cache_n": 910,
+      "prompt_n": 56,
+      "prompt_ms": 9584.654,
+      "prompt_per_token_ms": 171.15453571428571,
+      "prompt_per_second": 5.842673089711949,
+      "predicted_n": 14,
+      "predicted_ms": 5351.09,
+      "predicted_per_token_ms": 411.6223076923077,
+      "predicted_per_second": 2.429411577828069
+    },
+    "usage": {
+      "completion_tokens": 14,
+      "prompt_tokens": 966,
+      "total_tokens": 980,
+      "prompt_tokens_details": {
+        "cached_tokens": 910
+      }
+    },
+    "reasoning_content": ""
+  },
+  {
+    "id": "unknown_memory",
+    "draft": "",
+    "raw": "{\"text\":\"\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 8.54,
+    "check": "Не выдумывать имя; пустое предложение.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "",
+    "unsupported_specifics": false,
+    "timings": {
+      "cache_n": 910,
+      "prompt_n": 42,
+      "prompt_ms": 6893.994,
+      "prompt_per_token_ms": 164.14271428571428,
+      "prompt_per_second": 6.092259436257125,
+      "predicted_n": 5,
+      "predicted_ms": 1592.644,
+      "predicted_per_token_ms": 398.161,
+      "predicted_per_second": 2.511546836581182
+    },
+    "usage": {
+      "completion_tokens": 5,
+      "prompt_tokens": 952,
+      "total_tokens": 957,
+      "prompt_tokens_details": {
+        "cached_tokens": 910
+      }
+    },
+    "reasoning_content": ""
+  },
+  {
+    "id": "review_feedback",
+    "draft": "Спасибо, ",
+    "raw": "{\"text\":\"Спасибо, посмотрю.\"}",
+    "finish_reason": "stop",
+    "elapsed_seconds": 14.11,
+    "check": "Намерение проверить обновлённый текст; не выдумывать уже выполненную проверку.",
+    "parse_error": "",
+    "echo": false,
+    "suffix": "посмотрю.",
+    "unsupported_specifics": false,
+    "timings": {
+      "cache_n": 910,
+      "prompt_n": 54,
+      "prompt_ms": 9408.98,
+      "prompt_per_token_ms": 174.24037037037036,
+      "prompt_per_second": 5.739198085233468,
+      "predicted_n": 12,
+      "predicted_ms": 4627.963,
+      "predicted_per_token_ms": 420.72390909090905,
+      "predicted_per_second": 2.3768556490188018
+    },
+    "usage": {
+      "completion_tokens": 12,
+      "prompt_tokens": 964,
+      "total_tokens": 976,
+      "prompt_tokens_details": {
+        "cached_tokens": 910
+      }
+    },
+    "reasoning_content": ""
+  }
+]

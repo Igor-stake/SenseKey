@@ -39,6 +39,11 @@ SPDX-License-Identifier: Apache-2.0 AND GPL-3.0-only
             tools:remove="android:appComponentFactory"
             tools:targetApi="p">
 
+        <activity android:name=".completion.SenseCompletionSettingsActivity"
+                android:theme="@style/platformActivityTheme"
+                android:label="@string/sense_completion_settings"
+                android:exported="false" />
+
         <!-- Services -->
         <service android:name="LatinIME"
                 android:label="@string/english_ime_name"

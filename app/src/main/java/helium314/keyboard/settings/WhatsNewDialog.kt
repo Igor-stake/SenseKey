@@ -59,14 +59,12 @@ val WHATS_NEW_FEATURES = listOf(
         "\uD83C\uDFA8",
         "Tone Adjustment",
         "Rewrite your text as Formal, Casual, Friendly, Shorter, Longer, fix Grammar, or translate.\n\nTap the [icon] AI Tone button on your toolbar. Customize your chips in Settings > AI > General > Advanced > Tone Chips.",
-        videoRes = R.raw.whats_new_tone_video,
         inlineIconRes = R.drawable.ic_ai_tone
     ),
     WhatsNewFeature(
         "\u26A1",
         "Inline Commands",
         "Instantly transform your text with shortcuts like //formal, //grammar, //summarize, //shorten, or //reply.\n\nType your text, add the command at the end, and tap the AI button. Manage your aliases in Settings > AI > General > Advanced > Prompt Aliases.",
-        R.drawable.whats_new_aliases
     ),
     WhatsNewFeature(
         "\uD83D\uDD17",
@@ -91,7 +89,7 @@ val WHATS_NEW_FEATURES = listOf(
     WhatsNewFeature(
         "\uD83D\uDD14",
         "v1.3 - Update notifications",
-        "Deskdrop can now check for updates automatically. Enable it in Settings > About > Auto-check for updates, or use the Check for updates button on the main screen."
+        "SenseKey can now check for updates automatically. Enable it in Settings > About > Auto-check for updates, or use the Check for updates button on the main screen."
     ),
     WhatsNewFeature(
         "\uD83D\uDCA1",

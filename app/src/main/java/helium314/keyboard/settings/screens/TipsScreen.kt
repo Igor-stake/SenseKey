@@ -128,7 +128,7 @@ object TipsData {
         ),
         TipCardData(
             title = "Cloud fallback",
-            body = "Running Ollama and your server goes down? Deskdrop can transparently swap to your cloud model until the server is back. Disabled by default, enable it in AI Settings > General.",
+            body = "Running Ollama and your server goes down? SenseKey can transparently swap to your cloud model until the server is back. Disabled by default, enable it in AI Settings > General.",
         ),
         TipCardData(
             title = "Clipboard as context",
@@ -152,12 +152,12 @@ object TipsData {
             ),
         ),
         TipCardData(
-            title = "Share to Deskdrop",
-            body = "Select text in any app and choose Deskdrop from the menu. Or share images and PDFs to open a chat with the shared content as context.",
+            title = "Share to SenseKey",
+            body = "Select text in any app and choose SenseKey from the menu. Or share images and PDFs to open a chat with the shared content as context.",
         ),
         TipCardData(
             title = "Home screen widgets",
-            body = "Add Deskdrop widgets to your home screen for one-tap access to Voice, Chat, and Execute. Available as a combined widget or as individual buttons.",
+            body = "Add SenseKey widgets to your home screen for one-tap access to Voice, Chat, and Execute. Available as a combined widget or as individual buttons.",
         ),
         TipCardData(
             title = "Customize your toolbar",

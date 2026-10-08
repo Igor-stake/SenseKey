@@ -1,0 +1,46 @@
+{
+  "note": "Small fixed synthetic validation set, previously used for Qwen3.5-9B; no prompt tuning during this Bonsai evaluation. Not an independent test of model selection or real-user acceptance. Host times are not phone times.",
+  "packing": "PQ2_0",
+  "cases": [
+    {
+      "id": "confirm_read",
+      "rating": "useful",
+      "reason": "Proposes reading, without claiming it was already done."
+    },
+    {
+      "id": "choose_delivery",
+      "rating": "useful",
+      "reason": "Natural short agreement to order food."
+    },
+    {
+      "id": "unknown_address",
+      "rating": "correct_abstention",
+      "reason": "No invented address."
+    },
+    {
+      "id": "new_thanks",
+      "rating": "useful",
+      "reason": "Natural response to thanks."
+    },
+    {
+      "id": "not_buy",
+      "rating": "useful",
+      "reason": "Suggests a smaller alternative to the explicitly large wardrobe; no invented price or room dimensions."
+    },
+    {
+      "id": "known_day",
+      "rating": "useful",
+      "reason": "Uses the known Saturday and 15, without inventing a new time."
+    },
+    {
+      "id": "unknown_memory",
+      "rating": "correct_abstention",
+      "reason": "No invented teacher name."
+    },
+    {
+      "id": "review_feedback",
+      "rating": "useful",
+      "reason": "Proposes looking at the revision; does not claim a completed review."
+    }
+  ]
+}
