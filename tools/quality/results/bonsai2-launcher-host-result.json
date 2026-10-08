@@ -1,0 +1,82 @@
+{
+  "server_arguments": [
+    "-m",
+    "Ternary-Bonsai-2-27B-PQ2_0.gguf",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8080",
+    "--alias",
+    "sensekey",
+    "-c",
+    "4096",
+    "--parallel",
+    "1",
+    "-t",
+    "4",
+    "--jinja",
+    "--n-gpu-layers",
+    "0",
+    "--batch-size",
+    "16",
+    "--ubatch-size",
+    "16",
+    "--cache-ram",
+    "128",
+    "--ctx-checkpoints",
+    "4",
+    "--reasoning",
+    "off",
+    "--reasoning-budget",
+    "0",
+    "--n-predict",
+    "256",
+    "--chat-template-kwargs",
+    "{\"enable_thinking\":false}",
+    "--offline",
+    "--no-webui"
+  ],
+  "note": "Host CPU only; not phone latency.",
+  "startup_seconds": 219.72,
+  "first_real_request_seconds": 28.62,
+  "first_real_response": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "{\"text\":\"Хорошо, прочитал.\"}"
+        }
+      }
+    ],
+    "created": 1791449842,
+    "model": "sensekey",
+    "system_fingerprint": "b10754-2459f68b5",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 13,
+      "prompt_tokens": 954,
+      "total_tokens": 967,
+      "prompt_tokens_details": {
+        "cached_tokens": 910
+      }
+    },
+    "id": "chatcmpl-h7jWhhi33hLuOm37rgT0rM1oFIHZ9L6z",
+    "timings": {
+      "cache_n": 910,
+      "prompt_n": 44,
+      "prompt_ms": 12125.036,
+      "prompt_per_token_ms": 275.569,
+      "prompt_per_second": 3.6288552050484633,
+      "predicted_n": 13,
+      "predicted_ms": 16479.049,
+      "predicted_per_token_ms": 1373.2540833333333,
+      "predicted_per_second": 0.7281973613889977
+    }
+  },
+  "cancelled_slot_release_seconds": 2.81,
+  "launcher_exit_code": 130,
+  "warmup_sha256": "44d8301339b694b711931b6ff66ff100414123770376bec159c825e5cfd4308c",
+  "quality_review": "The unseeded first-real-request fixture produced Хорошо, прочитал. This is incorrect for a request to read the instructions: it asserts an action already completed. This separate failure is not included in the eight seed-42 cases and demonstrates sampling sensitivity. Prompt caching and successful transport do not establish adequate suggestions."
+}

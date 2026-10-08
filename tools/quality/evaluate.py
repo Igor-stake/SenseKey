@@ -22,7 +22,13 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--cases', type=Path, nargs='+', default=[ROOT/'cases.json', ROOT/'holdout.json'])
     parser.add_argument('--json-jar', type=Path, help='optional cached org.json 20250517 JAR')
+    parser.add_argument('--server-arg', action='append', default=[],
+                        help='extra server argument; use --server-arg=--option for flags')
+    parser.add_argument('--request-timeout', type=float, default=180,
+                        help='host HTTP timeout in seconds; does not change the Android deadline')
     args = parser.parse_args()
+    if args.request_timeout <= 0:
+        parser.error('--request-timeout must be positive')
     cases = [case for path in args.cases for case in json.loads(path.read_text())]
     args.output.mkdir(parents=True, exist_ok=True)
     model_sha = hashlib.file_digest(args.model.open('rb'), 'sha256').hexdigest()
@@ -51,6 +57,9 @@ def main():
         (args.output/'requests.json').write_text(json.dumps(payloads, ensure_ascii=False, indent=2)+'\n')
         manifest = {'model': args.model.name, 'model_sha256': model_sha, 'seed': 42,
                     'threads': 4, 'context_tokens': 4096, 'case_files': [p.name for p in args.cases],
+                    'server_sha256': hashlib.file_digest(args.server.open('rb'), 'sha256').hexdigest(),
+                    'server_arguments': args.server_arg,
+                    'request_timeout_seconds': args.request_timeout,
                     'client_sha256': hashlib.sha256((production/'SenseCompletionClient.java').read_bytes()).hexdigest(),
                     'note': 'Host CPU timings are not phone latency. Quality must be reviewed against each case check.'}
         (args.output/'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')
@@ -58,7 +67,7 @@ def main():
         with (args.output/'server.log').open('w') as log:
             process = subprocess.Popen([str(args.server.resolve()), '-m', str(args.model.resolve()),
                 '--host', '127.0.0.1', '--port', '8099', '--alias', 'sensekey', '-c', '4096',
-                '--parallel', '1', '-t', '4', '--jinja'], stdout=log, stderr=subprocess.STDOUT)
+                '--parallel', '1', '-t', '4', '--jinja', *args.server_arg], stdout=log, stderr=subprocess.STDOUT)
             try:
                 for _ in range(120):
                     if process.poll() is not None:
@@ -80,14 +89,19 @@ def main():
                         payload['seed'] = 42  # Evaluation reproducibility; the app does not force a seed.
                         request = urllib.request.Request('http://127.0.0.1:8099/v1/chat/completions',
                             data=json.dumps(payload, ensure_ascii=False).encode(), headers={'Content-Type': 'application/json'})
-                        with urllib.request.urlopen(request, timeout=180) as response:
-                            choice = json.load(response)['choices'][0]
+                        with urllib.request.urlopen(request, timeout=args.request_timeout) as response:
+                            answer = json.load(response)
+                            choice = answer['choices'][0]
                         raw, finish = choice['message'].get('content', ''), choice.get('finish_reason')
                         decoded = decode([dict(case, raw=raw)])[0]
                         if finish == 'length':
                             decoded['suffix'] = ''
                     row = dict(id=case['id'], draft=case['draft'], raw=raw, finish_reason=finish,
                                elapsed_seconds=round(time.monotonic()-started, 2), check=case['check'], **decoded)
+                    if finish != 'not_requested':
+                        row['timings'] = answer.get('timings', {})
+                        row['usage'] = answer.get('usage', {})
+                        row['reasoning_content'] = choice['message'].get('reasoning_content', '')
                     rows.append(row)
                     (args.output/'results.json').write_text(json.dumps(rows, ensure_ascii=False, indent=2)+'\n')
                     print(json.dumps(row, ensure_ascii=False), flush=True)

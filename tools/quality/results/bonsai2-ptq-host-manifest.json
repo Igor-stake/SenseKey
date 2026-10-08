@@ -1,0 +1,36 @@
+{
+  "model": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+  "model_sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3",
+  "seed": 42,
+  "threads": 4,
+  "context_tokens": 4096,
+  "case_files": [
+    "validation.json"
+  ],
+  "server_sha256": "12ae5baba033d8cd243644551aa917ddf83cfb3f6c92935565f2775611276eb1",
+  "server_arguments": [
+    "--batch-size",
+    "64",
+    "--ubatch-size",
+    "64",
+    "--cache-ram",
+    "128",
+    "--ctx-checkpoints",
+    "4",
+    "--reasoning",
+    "off",
+    "--reasoning-budget",
+    "0",
+    "--n-gpu-layers",
+    "0",
+    "--offline"
+  ],
+  "client_sha256": "c636de901fdfe55e0ec1a22dd19cbbbe30e5fdef4419e330886f7b0b575a9bea",
+  "note": "Host CPU timings are not phone latency. Quality must be reviewed against each case check.",
+  "runtime_release": "prism-b10754-2459f68",
+  "model_revision": "b072e1d3b35a0a630cece372c2127528e0994386",
+  "outcome": "First validation request exceeded 180-second host HTTP timeout during cold prompt processing; no quality score or decoded continuation obtained.",
+  "request_count": 1,
+  "completed_count": 0,
+  "benchmark_note": "CPU-only environment, not Galaxy Z Fold. Existing Qwen3.5-9B measurements use a different runtime. Neither is a controlled device speed comparison."
+}

@@ -34,6 +34,21 @@ else
     printf '%s  %s\n' "$expected" "$model_path" | sha256sum -c -
 fi
 
-printf 'Starting SenseKey local model. Keep this Termux session running.\n'
-exec llama-server -m "$model_path" --host 127.0.0.1 --port 8080 \
-    --alias sensekey -c 4096 --parallel 1 -t 4 --jinja
+# Let the server handle cancellation between small logical prompt batches.
+# Optional flags are used only when the installed Termux version supports them.
+server_help=$(llama-server --help 2>&1)
+set -- -m "$model_path" --host 127.0.0.1 --port 8080 \
+    --alias sensekey -c 4096 --parallel 1 -t 4 --jinja \
+    --batch-size 64 --ubatch-size 64
+if [[ "$server_help" == *--cache-ram* ]]; then set -- "$@" --cache-ram 128; fi
+if [[ "$server_help" == *--reasoning\ \[* ]]; then set -- "$@" --reasoning off; fi
+if [[ "$server_help" == *--reasoning-budget* ]]; then set -- "$@" --reasoning-budget 0; fi
+helper="$model_dir/sensekey-serve.sh"
+warmup="$model_dir/sensekey-warmup.json"
+source_base=https://raw.githubusercontent.com/Igor-stake/SenseKey/prealpha-context-fixes/tools/quality
+curl -fL --retry 3 -o "$helper" "$source_base/serve-local-model.sh"
+curl -fL --retry 3 -o "$warmup" "$source_base/warmup.json"
+printf '%s  %s\n' 170d27965afbf1006ab29b6df5df07badc051c974f244ebdf7ef38a413479f63 "$helper" | sha256sum -c -
+printf '%s  %s\n' 44d8301339b694b711931b6ff66ff100414123770376bec159c825e5cfd4308c "$warmup" | sha256sum -c -
+printf 'Starting SenseKey local model with prompt batch 64. Keep this Termux session running.\n'
+exec bash "$helper" "$warmup" llama-server "$@"
